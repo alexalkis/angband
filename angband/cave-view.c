@@ -466,14 +466,23 @@ void forget_view(struct chunk *c)
  */
 static void mark_wasseen(struct chunk *c) 
 {
+	static const size_t flag_offset = FLAG_OFFSET(SQUARE_VIEW);
+	static const int flag_not_seen_not_view = ~(FLAG_BINARY(SQUARE_VIEW) | FLAG_BINARY(SQUARE_SEEN));
+	static const int flag_bin_wasseen = FLAG_BINARY(SQUARE_WASSEEN);
+	static const int flag_bin_seen = FLAG_BINARY(SQUARE_SEEN);
+
+
 	int x, y;
 	/* Save the old "view" grids for later */
 	for (y = 0; y < c->height; y++) {
 		for (x = 0; x < c->width; x++) {
-			if (square_isseen(c, y, x))
-				sqinfo_on(c->squares[y][x].info, SQUARE_WASSEEN);
-			sqinfo_off(c->squares[y][x].info, SQUARE_VIEW);
-			sqinfo_off(c->squares[y][x].info, SQUARE_SEEN);
+			if (c->squares[y][x].info[flag_offset] & flag_bin_seen)
+				c->squares[y][x].info[flag_offset] |= flag_bin_wasseen;
+			//if (square_isseen(c, y, x))
+				//sqinfo_on(c->squares[y][x].info, SQUARE_WASSEEN);
+			//sqinfo_off(c->squares[y][x].info, SQUARE_VIEW);
+			//sqinfo_off(c->squares[y][x].info, SQUARE_SEEN);
+			c->squares[y][x].info[flag_offset] &= flag_not_seen_not_view;
 		}
 	}
 }
@@ -559,11 +568,17 @@ static void add_monster_lights(struct chunk *c, struct loc from)
 //Alkis, trying to optimize a bit the calls
 static void update_one(struct chunk *c, int y, int x, int blind)
 {
-	if (blind)
-		sqinfo_off(c->squares[y][x].info, SQUARE_SEEN);
+	static const size_t flag_offset = FLAG_OFFSET(SQUARE_VIEW);
+	static const int flag_binary = FLAG_BINARY(SQUARE_VIEW) | FLAG_BINARY(SQUARE_SEEN);
+	static const int flag_bin_wasseen = FLAG_BINARY(SQUARE_WASSEEN);
+	static const int flag_bin_seen = FLAG_BINARY(SQUARE_SEEN);
 
-	bool  sq_isseen=square_isseen(c, y, x);
-	bool  sq_wasseen=square_wasseen(c, y, x);
+	if (blind)
+		//sqinfo_off(c->squares[y][x].info, SQUARE_SEEN);
+		c->squares[y][x].info[flag_offset] &= ~flag_bin_seen;
+
+	bool  sq_isseen=c->squares[y][x].info[flag_offset] & flag_bin_seen;//square_isseen(c, y, x);
+	bool  sq_wasseen=c->squares[y][x].info[flag_offset] & flag_bin_wasseen;//square_wasseen(c, y, x);
 
 	/* Square went from unseen -> seen */
 	if (sq_isseen && !sq_wasseen) {
@@ -586,7 +601,8 @@ static void update_one(struct chunk *c, int y, int x, int blind)
 	else if (!sq_isseen && sq_wasseen)
 		square_light_spot(c, y, x);
 
-	sqinfo_off(c->squares[y][x].info, SQUARE_WASSEEN);
+	//sqinfo_off(c->squares[y][x].info, SQUARE_WASSEEN);
+	c->squares[y][x].info[flag_offset] &= ~flag_bin_wasseen;
 }
 
 

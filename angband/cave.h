@@ -45,14 +45,20 @@ enum
 
 #define SQUARE_SIZE                FLAG_SIZE(SQUARE_MAX)
 
+#ifndef NDEBUG
 #define sqinfo_has(f, flag)        flag_has_dbg(f, SQUARE_SIZE, flag, #f, #flag)
+#define sqinfo_on(f, flag)         flag_on_dbg(f, SQUARE_SIZE, flag, #f, #flag)
+#else
+#define sqinfo_has(f, flag)        flag_has(f, SQUARE_SIZE, flag)
+#define sqinfo_on(f, flag)         flag_on(f, SQUARE_SIZE, flag)
+#endif
+
 #define sqinfo_next(f, flag)       flag_next(f, SQUARE_SIZE, flag)
 #define sqinfo_is_empty(f)         flag_is_empty(f, SQUARE_SIZE)
 #define sqinfo_is_full(f)          flag_is_full(f, SQUARE_SIZE)
 #define sqinfo_is_inter(f1, f2)    flag_is_inter(f1, f2, SQUARE_SIZE)
 #define sqinfo_is_subset(f1, f2)   flag_is_subset(f1, f2, SQUARE_SIZE)
 #define sqinfo_is_equal(f1, f2)    flag_is_equal(f1, f2, SQUARE_SIZE)
-#define sqinfo_on(f, flag)         flag_on_dbg(f, SQUARE_SIZE, flag, #f, #flag)
 #define sqinfo_off(f, flag)        flag_off(f, SQUARE_SIZE, flag)
 #define sqinfo_wipe(f)             flag_wipe(f, SQUARE_SIZE)
 #define sqinfo_setall(f)           flag_setall(f, SQUARE_SIZE)
@@ -77,8 +83,11 @@ enum
 
 #define TF_SIZE                FLAG_SIZE(TF_MAX)
 
+#ifndef NDEBUG
 #define tf_has(f, flag)        flag_has_dbg(f, TF_SIZE, flag, #f, #flag)
-
+#else
+#define tf_has(f, flag)        flag_has(f, TF_SIZE, flag)
+#endif
 /**
  * Information about terrain features.
  *
