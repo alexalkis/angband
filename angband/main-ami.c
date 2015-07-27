@@ -63,7 +63,7 @@ const char help_ami[] = "Basic Amiga, will probably crash :P";
 #define FAIL( str ) return ( amiga_fail( str ))
 
 /* Message */
-#define MSG( x, y, txt ) amiga_text( x, y, strlen( txt ), 1, txt );
+#define MSG( x, y, txt ) amiga_noutf8_text( x, y, strlen( txt ), 1, txt );
 
 /* Char and attr under cursor */
 #define CUR_A ( td->t.scr->a[ td->cursor_ypos ][ td->cursor_xpos ] )
@@ -206,7 +206,7 @@ static int iconified = FALSE;
 static int use_menus = TRUE;
 
 /* Use mouseblanking? */
-static int blankmouse = FALSE;
+static int blankmouse = TRUE;
 
 /* Window input event */
 static struct InputEvent ie;
@@ -224,13 +224,11 @@ static int publock = FALSE;
 static int backdrop = FALSE;
 
 /* Use 32 colors on custom screen */
-static int deep = FALSE;
+static int deep = TRUE;
 
 /* Invisible pointer for blanking */
-//static __chip UWORD blankpointer[] = { 0,0,0,0,0,0,0,0 };
+static UWORD *blankpointer = NULL;
 
-static UWORD blankpointer[] = { 0,0,0,0,0,0,0,0 };
-//TODO: move this to init, so it can go to chip memory
 
 
 /* Pointer visibility status */
@@ -501,6 +499,7 @@ static errr amiga_clear( void );
 static errr amiga_pict( int x, int y,int n, const int *ap, const wchar_t *cp, const int *tap, const wchar_t *tcp );
 //static errr amiga_text( int x, int y, int n, byte a, cptr s );
 static errr amiga_text( int x, int y, int n, int a, const wchar_t *s );
+static errr amiga_noutf8_text( int x, int y, int n, int a, const char *s );
 static errr amiga_xtra( int n, int v );
 static errr amiga_flush( int v );
 static errr amiga_event( int v );
@@ -569,6 +568,9 @@ errr init_ami( void )
    if (( DiskfontBase = OpenLibrary( "diskfont.library", 0 )) == NULL )
       FAIL( "Unable to open diskfont.library." );
 
+   blankpointer=AllocMem(16,MEMF_CHIP);
+   memset(blankpointer,0,16);
+
    /* Read preferences file */
    read_prefs();
 
@@ -591,20 +593,20 @@ errr init_ami( void )
    }
 
    /* Initialize color palette */
-   for ( i = 0; i < 32; i++ )
-   {
-      /* If undefined, use default palette */
+//   for ( i = 0; i < 32; i++ )
+//   {
+    /* If undefined, use default palette */
 //      if ( angband_color_table[ i ][ 0 ] == 0 &&
 //           angband_color_table[ i ][ 1 ] == 0 &&
 //           angband_color_table[ i ][ 2 ] == 0 &&
 //           angband_color_table[ i ][ 3 ] == 0 )
 //      {
-         angband_color_table[ i ][ 0 ] = 1;
-         angband_color_table[ i ][ 1 ] = ( default_colors[ i ] & 0xff0000 ) >> 16;
-         angband_color_table[ i ][ 2 ] = ( default_colors[ i ] & 0x00ff00 ) >> 8;
-         angband_color_table[ i ][ 3 ] = ( default_colors[ i ] & 0x0000ff );
-//      }
-   }
+//         angband_color_table[ i ][ 0 ] = 1;
+//         angband_color_table[ i ][ 1 ] = ( default_colors[ i ] & 0xff0000 ) >> 16;
+//         angband_color_table[ i ][ 2 ] = ( default_colors[ i ] & 0x00ff00 ) >> 8;
+//         angband_color_table[ i ][ 3 ] = ( default_colors[ i ] & 0x0000ff );
+      //}
+//   }
 
    /* Search for prefered screenmode or public screen */
    if ( strlen( modestr ) > 0 )
@@ -722,14 +724,14 @@ errr init_ami( void )
       }
 
       /* Use only 16 colors with no graphics */
-      if ( !use_graphics )
-      {
-         /* Use 16 colors */
-         deep = FALSE;
-
-         /* Use colors 0..15 for text */
-         for ( i = 0; i < 16; i++ ) penconv[ i ] = i;
-      }
+//      if ( !use_graphics )
+//      {
+//         /* Use 16 colors */
+//         deep = FALSE;
+//
+//         /* Use colors 0..15 for text */
+//         for ( i = 0; i < 16; i++ ) penconv[ i ] = i;
+//      }
 
       if (( amiscr = OpenScreenTags( NULL,
              SA_Width, ts->ww,
@@ -1597,7 +1599,7 @@ static errr amiga_pict( int x, int y,int n, const int *ap, const wchar_t *cp, co
    {
       s[0] = *cp;
       s[1] = 0;
-      SetAPen( td->rp, PEN( *ap & 0x0f ));
+      SetAPen( td->rp, PEN( *ap & 0x1f ));
       SetBPen( td->rp, PEN( 0 ));
       Move( td->rp, x * td->fw, y * td->fh + td->fb );
       Text( td->rp, (char *) s, 1 );
@@ -1630,8 +1632,10 @@ static errr amiga_text( int x, int y, int n, int a, const wchar_t *s )
       /* Draw the string on screen */
       else
       {
-         SetAPen( td->rp, PEN( a&0x0f ));
-         SetBPen( td->rp, PEN( 0 ));
+//         SetAPen( td->rp, PEN( a&0x1f ));
+//         SetBPen( td->rp, PEN( 0 ));
+         SetAPen( td->rp, a&0x1f );
+         SetBPen( td->rp,  0 );
          for(i=0; i<n; ++i)
         	 buffer[i]=*s++;
          Move( td->rp, x * td->fw, y * td->fh + td->fb );
@@ -1641,6 +1645,21 @@ static errr amiga_text( int x, int y, int n, int a, const wchar_t *s )
 
    return ( 0 );
 }
+
+static errr amiga_noutf8_text( int x, int y, int n, int a, const char *s )
+{
+   term_data *td = (term_data*)(Term->data);
+   if ( x >= 0 && y >= 0 && n > 0 && !iconified )
+   {
+         SetAPen( td->rp, a&0x1f );
+         SetBPen( td->rp, 0 );
+         Move( td->rp, x * td->fw, y * td->fh + td->fb );
+         Text( td->rp, s, n );
+   }
+
+   return ( 0 );
+}
+
 
 ///}
 ///{ "amiga_xtra()" - Handle a "special request"
@@ -2637,6 +2656,7 @@ static int amiga_fail( char *msg )
    /* Close intuition screen */
    if ( amiscr )
    {
+	  //FreeColorMap(amiscr->ViewPort.ColorMap);
       CloseScreen( amiscr );
       amiscr = NULL;
    }
@@ -2661,6 +2681,8 @@ static int amiga_fail( char *msg )
       CloseLibrary( DiskfontBase );
       DiskfontBase = NULL;
    }
+
+   FreeMem(blankpointer,16);
 
    // Return failure
    return(-1);
@@ -2767,13 +2789,18 @@ void load_palette( void )
 
    if ( v39 )
    {
-      palette32[ 0 ] = n << 16;
+	  palette32[ 0 ] = n << 16;
       palette32[ n * 3 + 1 ] = 0;
       for ( i = 0; i < n; i++ )
       {
-         palette32[ i * 3 + 1 ] = angband_color_table[ use_graphics ? i : i + 16 ][ 1 ] << 24;
-         palette32[ i * 3 + 2 ] = angband_color_table[ use_graphics ? i : i + 16 ][ 2 ] << 24;
-         palette32[ i * 3 + 3 ] = angband_color_table[ use_graphics ? i : i + 16 ][ 3 ] << 24;
+//         palette32[ i * 3 + 1 ] = angband_color_table[ use_graphics ? i : i + 16 ][ 1 ] << 24;
+//         palette32[ i * 3 + 2 ] = angband_color_table[ use_graphics ? i : i + 16 ][ 2 ] << 24;
+//         palette32[ i * 3 + 3 ] = angband_color_table[ use_graphics ? i : i + 16 ][ 3 ] << 24;
+    	  angband_color_table[ i ][ 0 ] = 1;
+    	  palette32[ i * 3 + 1 ] = 0xFFFF | ((ULONG)angband_color_table[ i ][ 1 ]) << 24;
+    	  palette32[ i * 3 + 2 ] = 0xFFFF | ((ULONG)angband_color_table[ i ][ 2 ]) << 24;
+    	  palette32[ i * 3 + 3 ] = 0xFFFF | ((ULONG)angband_color_table[ i ][ 3 ]) << 24;
+    	  //printf("%X,%X,%X\n",palette32[ i * 3 + 1 ],palette32[ i * 3 + 2 ], palette32[ i * 3 + 3 ]);
       }
       LoadRGB32( &amiscr->ViewPort, palette32 );
    }
@@ -2781,9 +2808,9 @@ void load_palette( void )
    {
       for ( i = 0; i < n; i++ )
       {
-         palette4[ i ] =  ( angband_color_table[ use_graphics ? i : i + 16 ][ 1 ] >> 4 ) << 8;
-         palette4[ i ] |= ( angband_color_table[ use_graphics ? i : i + 16 ][ 2 ] >> 4 ) << 4;
-         palette4[ i ] |= ( angband_color_table[ use_graphics ? i : i + 16 ][ 3 ] >> 4 );
+         palette4[ i ] =  ( angband_color_table[ i ][ 1 ] >> 4 ) << 8;
+         palette4[ i ] |= ( angband_color_table[ i ][ 2 ] >> 4 ) << 4;
+         palette4[ i ] |= ( angband_color_table[ i ][ 3 ] >> 4 );
       }
       LoadRGB4( &amiscr->ViewPort, palette4, n );
    }

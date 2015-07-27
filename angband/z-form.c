@@ -21,7 +21,8 @@
 #include "z-virt.h"
 
 #ifdef USE_AMI
-#define wcslen strlen
+//#define wcslen strlen
+extern size_t wcslen(const wchar_t *s);
 #endif
 
 

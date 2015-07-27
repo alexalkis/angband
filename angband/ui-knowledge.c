@@ -56,7 +56,19 @@
 #include "wizard.h"
 
 #ifdef USE_AMI
-#define wcschr strchr
+//#define wcschr strchr
+size_t wcslen(const wchar_t *s)
+{
+	const wchar_t *a;
+	for (a=s; *s; s++);
+	return s-a;
+}
+wchar_t *wcschr(const wchar_t *s, wchar_t c)
+{
+	if (!c) return (wchar_t *)s + wcslen(s);
+	for (; *s && *s != c; s++);
+	return *s ? (wchar_t *)s : 0;
+}
 #endif
 
 /**
