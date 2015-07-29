@@ -532,7 +532,7 @@ void handle_rawkey( UWORD code, UWORD qual, APTR addr );
 
 ///}
 
-///{ "init_ami()" - Initialize all Amiga spesific stuff
+extern size_t (*text_mbcs_hook)(wchar_t *dest, const char *src, int n);
 
 size_t mbstowcs(wchar_t *wcstr, const char *mbstr, size_t count)
 {
@@ -554,6 +554,7 @@ size_t mbstowcs(wchar_t *wcstr, const char *mbstr, size_t count)
     return i;
 }
 
+///{ "init_ami()" - Initialize all Amiga spesific stuff
 errr init_ami( void )
 {
    char *s;
