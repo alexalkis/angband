@@ -112,6 +112,7 @@ static void textblock_vappend_c(textblock *tb, byte attr, const char *fmt,
 
 	/* Get extent of addition in wide chars */
 	new_length = text_mbstowcs(NULL, temp_space, 0);
+	//printf("before conversion to wide strlen=%d, after new_length=%d\n",strlen(temp_space),new_length);
 	assert(new_length >= 0); /* If this fails, the string was badly formed */
 	textblock_resize_if_needed(tb, new_length);
 
@@ -244,6 +245,8 @@ size_t textblock_calculate_lines(textblock *tb,
 	size_t word_start = 0, word_length = 0;
 
 	assert(width > 0);
+
+	//printf("tb->strlen=%d\n",len);
 
 	for (text_offset = 0; text_offset < len; text_offset++) {
 		if (text[text_offset] == L'\n') {

@@ -186,6 +186,9 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 	n_lines = textblock_calculate_lines(tb,
 			&line_starts, &line_lengths, area.width);
 
+	///TODO: remove this after debuging why n_lines is 0
+	static int counter=0;
+	//printf("%d nlines=%d (%s)\n",++counter,n_lines,header);
 	screen_save();
 
 	/* make room for the footer */

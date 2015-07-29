@@ -534,6 +534,26 @@ void handle_rawkey( UWORD code, UWORD qual, APTR addr );
 
 ///{ "init_ami()" - Initialize all Amiga spesific stuff
 
+size_t mbstowcs(wchar_t *wcstr, const char *mbstr, size_t count)
+{
+    size_t i;
+
+    /* If wcstr is null, return the required size of the destination string
+     * in characters (not bytes).  Since we only support Ascii, there is
+     * nothing complicated to do here.
+     */
+    if (wcstr == NULL)
+        return strlen(mbstr);
+
+    for (i = 0; i < count; i++, wcstr++, mbstr++) {
+        *wcstr = *mbstr;
+        if (*wcstr == L'\0') {
+            break;
+        }
+    }
+    return i;
+}
+
 errr init_ami( void )
 {
    char *s;
@@ -542,6 +562,7 @@ errr init_ami( void )
    struct DimensionInfo diminfo;
    int pw,ph,maxw,maxh,th,barh;
 
+   text_mbcs_hook=&mbstowcs;
    /* Term data pointers */
    term_data *ts = &screen;
    term_data *tc = &choice;
