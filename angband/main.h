@@ -24,6 +24,7 @@
 #include "ui-term.h"
 
 extern errr init_sound_sdl(int argc, char **argv);
+extern errr init_sound_ami(int argc, char **argv);
 
 
 extern errr init_lfb(int argc, char **argv);

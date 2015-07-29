@@ -84,6 +84,10 @@ static int init_sound_dummy(int argc, char *argv[]) {
  */
 static const struct module sound_modules[] =
 {
+
+#ifdef USE_AMI
+	{ "ami", "Amiga sound module", init_sound_ami },
+#endif /* USE_AMI */
 #ifdef SOUND_SDL
 	{ "sdl", "SDL_mixer sound module", init_sound_sdl },
 #endif /* SOUND_SDL */

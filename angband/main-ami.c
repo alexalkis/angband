@@ -20,7 +20,7 @@
 
 
 
-//#include "sound-ami.h"
+#include "sound-ami.h"
 
 #include <devices/inputevent.h>
 #include <exec/memory.h>
@@ -44,6 +44,7 @@
 #include <proto/gadtools.h>
 
 #include "angband.h"
+#include "init.h"
 #include "ui-term.h"
 #include "z-color.h"
 #include "ui-prefs.h"
@@ -319,7 +320,7 @@ static struct AmiSound sound_data[ NSAMPLES ] =
 
 static int channel_last[ 4 ] = { -1, -1, -1, -1 };
 
-static int has_sound = FALSE;
+static int has_sound = TRUE;
 
 ///}
 ///{ "menus"
@@ -521,7 +522,7 @@ void load_palette( void );
 static void amiga_map( void );
 int init_sound( void );
 void free_sound( void );
-static void play_sound( int v );
+void play_sound( game_event_type type, game_event_data *data, void *user );
 struct BitMap *alloc_bitmap( int width, int height, int depth, ULONG flags, struct BitMap *friend );
 void free_bitmap( struct BitMap *bitmap );
 int depth_of_bitmap( struct BitMap *bm );
@@ -564,6 +565,12 @@ errr init_ami( void )
    int pw,ph,maxw,maxh,th,barh;
 
    text_mbcs_hook=&mbstowcs;
+
+   if (has_sound) {
+	   /* Set up sound hook */
+	   	event_add_handler(EVENT_SOUND, play_sound, NULL);
+   }
+
    /* Term data pointers */
    term_data *ts = &screen;
    term_data *tc = &choice;
@@ -1739,7 +1746,7 @@ static errr amiga_xtra( int n, int v )
 
       /* Play a sound */
 //      case TERM_XTRA_SOUND:
-
+//
 //         if ( has_sound )
 //         {
 //            play_sound( v );
@@ -2986,15 +2993,40 @@ void update_menus( void )
 ////   ResetMenuStrip( screen.win, menu );
 }
 
+
+/**
+ * Arbitary limit on number of samples per event
+ */
+#define MAX_SAMPLES      16
+
+/**
+ * Struct representing all data about an event sample
+ */
+typedef struct
+{
+	int num;                        /* Number of samples for this event */
+//	Mix_Chunk *wavs[MAX_SAMPLES];   /* Sample array */
+//	Mix_Music *mp3s[MAX_SAMPLES];   /* Sample array */
+	char *paths[MAX_SAMPLES]; /* Relative pathnames for samples */
+} sample_list;
+
+
+/**
+ * Just need an array of SampInfos
+ */
+static sample_list samples[MSG_MAX];
+
 ///}
 ///{ "init_sound()"
 
-int init_sound( void )
+int init_sound_ami( void )
 {
-//   int i;
-//   char tmp[256];
-//   struct AmiSound *snd;
-//
+   int i;
+   char path[2048];
+   char buffer[2048];
+   ang_file *fff;
+   struct AmiSound *snd;
+
 //   /* Load samples */
 //   for ( i = 0; i < NSAMPLES; i++ )
 //   {
@@ -3005,32 +3037,153 @@ int init_sound( void )
 //      if ( snd->Memory )
 //      {
 //         /* Construct filename */
-//         sprintf( tmp, "%ssound/%s", ANGBAND_DIR_XTRA, snd->Name );
+//         sprintf( tmp, "%ssound/%s", DEFAULT_LIB_PATH, snd->Name );
 //
 //         /* Load the sample into memory */
 //         snd->Address = (struct SoundInfo *) PrepareSound( tmp );
 //      }
 //   }
-//
-//   /* Success */
-//   has_sound = TRUE;
+
+	/* Find and open the config file */
+	path_build(path, sizeof(path), ANGBAND_DIR_SOUNDS, "sound.cfg");
+	fff = file_open(path, MODE_READ, -1);
+
+	/* Handle errors */
+	if (!fff) {
+		plog_fmt("Failed to open sound config (%s):\n    %s",
+		          path, strerror(errno));
+		return FALSE;
+	}
+
+	/* Parse the file */
+	/* Lines are always of the form "name = sample [sample ...]" */
+	while (file_getl(fff, buffer, sizeof(buffer))) {
+		char *msg_name;
+		char *sample_list;
+		char *search;
+		char *cur_token;
+		char *next_token;
+		int event;
+
+		/* Skip anything not beginning with an alphabetic character */
+		if (!buffer[0] || !isalpha((unsigned char)buffer[0])) continue;
+
+		/* Split the line into two: message name, and the rest */
+		search = strchr(buffer, ' ');
+		sample_list = strchr(search + 1, ' ');
+		if (!search) continue;
+		if (!sample_list) continue;
+
+		/* Set the message name, and terminate at first space */
+		msg_name = buffer;
+		search[0] = '\0';
+
+
+		/* Make sure this is a valid event name */
+		event = message_lookup_by_sound_name(msg_name);
+		if (event < 0) continue;
+
+		/* Advance the sample list pointer so it's at the beginning of text */
+		sample_list++;
+		if (!sample_list[0]) continue;
+
+		/* Terminate the current token */
+		cur_token = sample_list;
+		search = strchr(cur_token, ' ');
+		if (search) {
+			search[0] = '\0';
+			next_token = search + 1;
+		} else {
+			next_token = NULL;
+		}
+
+       /*
+        * Now we find all the sample names and add them one by one
+        */
+       while (cur_token) {
+			int num = samples[event].num;
+			bool got_file_type = FALSE;
+
+			/* Don't allow too many samples */
+			if (num >= MAX_SAMPLES) break;
+
+			/* Build the path to the sample */
+			path_build(path, sizeof(path), ANGBAND_DIR_SOUNDS, cur_token);
+			if (!file_exists(path)) goto next_token;
+
+
+			samples[event].paths[num] = string_make(path);
+//			/* Don't load now if we're not caching */
+//			if (no_cache) {
+//				/* Just save the path for later */
+//				samples[event].paths[num] = string_make(path);
+//			} else {
+//				/* Load the file now */
+//				if (use_mp3) {
+//					samples[event].mp3s[num] = Mix_LoadMUS(path);
+//					if (!samples[event].mp3s[num]) {
+//						plog_fmt("%s: %s", SDL_GetError(), strerror(errno));
+//						goto next_token;
+//					}
+//				} else {
+//					samples[event].wavs[num] = Mix_LoadWAV(path);
+//					if (!samples[event].wavs[num]) {
+//					        plog_fmt("%s: %s", SDL_GetError(), strerror(errno));
+//						goto next_token;
+//					}
+//				}
+//			}
+
+			/* Imcrement the sample count */
+			samples[event].num++;
+
+		next_token:
+
+			/* Figure out next token */
+			cur_token = next_token;
+			if (next_token) {
+				/* Try to find a space */
+				search = strchr(cur_token, ' ');
+
+				/* If we can find one, terminate, and set new "next" */
+				if (search) {
+					search[0] = '\0';
+					next_token = search + 1;
+				} else {
+					/* Otherwise prevent infinite looping */
+					next_token = NULL;
+				}
+			}
+		}
+	}
+
+	/* Close the file */
+	file_close(fff);
+
+   /* Success */
+   has_sound = TRUE;
 
    return ( TRUE );
 }
 
 ///}
+
+static struct SoundInfo *si[4];
+
 ///{ "free_sound()"
 
 void free_sound( void )
 {
-   int i;
+   int i,j;
 
-//   /* Stop all channels */
-//   StopSound( LEFT0 );
-//   StopSound( LEFT1 );
-//   StopSound( RIGHT0 );
-//   StopSound( RIGHT1 );
-//
+   /* Stop all channels */
+   StopSound( LEFT0 );
+   StopSound( LEFT1 );
+   StopSound( RIGHT0 );
+   StopSound( RIGHT1 );
+   for(i=0; i<4; ++i)
+	   if (si[i]) RemoveSound(si[i]);
+
 //   /* Remove all sounds from memory */
 //   for ( i = 0; i < NSAMPLES; i++ )
 //   {
@@ -3043,79 +3196,122 @@ void free_sound( void )
 //         sound_data[ i ].Address = NULL;
 //      }
 //   }
-//
-//   /* Done */
-//   has_sound = FALSE;
+
+	/* Free all the sample data*/
+	for (i = 0; i < MSG_MAX; i++) {
+ 		sample_list *smp = &samples[i];
+
+		/* Nuke all samples */
+		for (j = 0; j < smp->num; j++) {
+			string_free(smp->paths[j]);
+		}
+	}
+   /* Done */
+   has_sound = FALSE;
 }
 
 ///}
 ///{ "play_sound()"
+/**
+ * Make a sound.
+ *
+ * This action should produce sound number "v", where the
+ * "name" of that sound is "sound_names[v]".
+ *
+ * This action is optional, and not very important.
+ */
 
-static void play_sound( int v )
+//for f in *.mp3 ; do sox -v `sox "$f" -n stat -v 2>&1` "$f" -D -r16574 -b8 `basename "$f" .mp3`.8svx remix 1; done
+static void play_sound( game_event_type type, game_event_data *data, void *user )
 {
-//   struct AmiSound *snd;
-//   struct AmiSound *old_snd;
-//   int rate;
-//   int channel;
-//   int old;
-//   char tmp[256];
-//
-//   if ( has_sound )
-//   {
-//      /* Pointer to sound data */
-//      snd = &sound_data[ v ];
-//
-//      /* Channel number */
-//      channel = snd->Channel;
-//
-//      /* Last sample played on channel */
-//      old = channel_last[ channel ];
-//
-//      /* Sample Rate */
-//      rate = snd->Rate;
-//
-//      /* Random rate on some sounds */
-//      if ( v == SOUND_HIT || v == SOUND_MISS )
-//      {
-//         rate = rate - 50 + rand_int( 150 );
-//      }
-//
-//      /* Pointer to old sound data */
-//      old_snd = old >= 0 ? &sound_data[ old ] : NULL;
-//
-//      /* Stop sound currently playing on this channel */
-//      StopSound( channel );
-//
-//      /* Free old sample if required */
-//      if ( !old_snd->Memory && old_snd->Address && old != v )
-//      {
-//         /* Remove it from memory */
-//         RemoveSound( old_snd->Address );
-//
-//         /* Clear address field */
-//         old_snd->Address = NULL;
-//      }
-//
-//      /* Load new sample into memory if required */
-//      if ( !snd->Memory && snd->Address == NULL )
-//      {
-//         /* Construct filename */
-//         sprintf( tmp, "%ssound/%s", ANGBAND_DIR_XTRA, snd->Name );
-//
-//         /* Load the sample into memory */
-//         snd->Address = (struct SoundInfo *) PrepareSound( tmp );
-//      }
-//
-//      /* Make sure the sample is loaded into memory */
-//      if ( snd->Address )
-//      {
-//         /* Start playing the sound */
-//         PlaySound( snd->Address, snd->Volume, channel, rate, snd->Repeats );
-//      }
-//
-//      /* Store sample number */
-//      channel_last[ channel ] = v;
-//   }
+   int v = data->message.type;
+   struct AmiSound *snd;
+   struct AmiSound *old_snd;
+
+   static int rc=0;
+   int rate;
+   int channel;
+   int old;
+   char tmp[256];
+   int i;
+//   printf("would choose out of %d samples\n",samples[v].num);//,message_sound_name(v));
+//   for(i=0; i<samples[v].num; ++i)
+//	   printf("\t%s\n",samples[v].paths[i]);
+
+
+   if (!samples[v].num) {
+	   //printf("No samples for event [%d]\"%s\"\n",v,message_sound_name(v));
+	   return;
+   }
+   StopSound(rc);
+   if (si[rc])
+	   RemoveSound(si[rc]);
+   char *filename=samples[v].paths[randint0(samples[v].num)];
+
+   si[rc]=(struct SoundInfo *) PrepareSound( filename );
+   //printf("will use filename: %s\n Got %X\n",filename,si[0]);
+   PlaySound( si[rc], MAXVOLUME, rc, NORMALRATE, ONCE );
+   ++rc;
+   if (rc==4) rc=0;
+
+   return;
+   if ( has_sound )
+   {
+      /* Pointer to sound data */
+      snd = &sound_data[ v ];
+
+      /* Channel number */
+      channel = snd->Channel;
+
+      /* Last sample played on channel */
+      old = channel_last[ channel ];
+
+      /* Sample Rate */
+      rate = snd->Rate;
+
+      /* Random rate on some sounds */
+      if ( v == 2 /*SOUND_HIT*/ || v == 3 /*SOUND_MISS*/ )
+      {
+         rate = rate - 50 +rand()%150;
+      }
+
+      /* Pointer to old sound data */
+      old_snd = old >= 0 ? &sound_data[ old ] : NULL;
+
+      /* Stop sound currently playing on this channel */
+      StopSound( channel );
+
+      /* Free old sample if required */
+      if ( !old_snd->Memory && old_snd->Address && old != v )
+      {
+         /* Remove it from memory */
+         RemoveSound( old_snd->Address );
+
+         /* Clear address field */
+         old_snd->Address = NULL;
+      }
+
+      /* Load new sample into memory if required */
+      if ( !snd->Memory && snd->Address == NULL )
+      {
+         /* Construct filename */
+         sprintf( tmp, "%ssound/%s", DEFAULT_LIB_PATH, snd->Name );
+
+         /* Load the sample into memory */
+         snd->Address = (struct SoundInfo *) PrepareSound( tmp );
+
+      }
+
+      /* Make sure the sample is loaded into memory */
+      if ( snd->Address )
+      {
+         /* Start playing the sound */
+         PlaySound( snd->Address, snd->Volume, channel, rate, snd->Repeats );
+      }
+
+      /* Store sample number */
+      channel_last[ channel ] = v;
+   }
 }
 
 ///}
