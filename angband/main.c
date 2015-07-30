@@ -551,9 +551,11 @@ int main(int argc, char *argv[])
 
 	/* Try the modules in the order specified by sound_modules[] */
 	for (i = 0; i < (int)N_ELEMENTS(sound_modules); i++)
-		if (!soundstr || streq(soundstr, sound_modules[i].name))
+		if (!soundstr || streq(soundstr, sound_modules[i].name)) {
+			//printf("Calling sound init in module %s\n",sound_modules[i].name);
 			if (0 == sound_modules[i].init(argc, argv))
 				break;
+		}
 
 	/* Catch nasty signals */
 	signals_init();

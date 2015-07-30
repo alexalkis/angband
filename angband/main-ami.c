@@ -48,6 +48,7 @@
 #include "ui-term.h"
 #include "z-color.h"
 #include "ui-prefs.h"
+#include "grafmode.h"
 
 const char help_ami[] = "Basic Amiga, will probably crash :P";
 
@@ -276,51 +277,7 @@ static char ver[] = "$VER: " VERSION " (" __DATE__ ")";
 ///}
 ///{ "sound"
 
-#define NSAMPLES 25
-
-struct AmiSound
-{
-   char *Name;
-   int Volume;
-   int Channel;
-   int Rate;
-   int Repeats;
-   int Memory;
-   struct SoundInfo *Address;
-};
-
-static struct AmiSound sound_data[ NSAMPLES ] =
-{
-   { "intro.8svx",     64, 0, 0, 1, 0, NULL }, /* Intro */
-   { "hit.8svx",       64, 0, 0, 1, 1, NULL }, /* Hit */
-   { "miss.8svx",      64, 3, 0, 1, 1, NULL }, /* Miss */
-   { "flee.8svx",      64, 1, 0, 1, 1, NULL }, /* Flee */
-   { "drop.8svx",      64, 2, 0, 1, 1, NULL }, /* Drop */
-   { "kill.8svx",      64, 1, 0, 1, 1, NULL }, /* Kill */
-   { "study.8svx",     64, 2, 0, 1, 1, NULL }, /* Level */
-   { "death.8svx",     64, 0, 0, 1, 0, NULL }, /* Death */
-   { "study.8svx",     64, 2, 0, 1, 1, NULL }, /* Study */
-   { "teleport.8svx",  64, 3, 0, 1, 1, NULL }, /* Teleport */
-   { "shoot.8svx",     64, 0, 0, 1, 1, NULL }, /* Shoot */
-   { "quaff.8svx",     64, 1, 0, 1, 1, NULL }, /* Quaff */
-   { "zap.8svx",       64, 3, 0, 1, 1, NULL }, /* Zap */
-   { "walk.8svx",      64, 0, 0, 1, 1, NULL }, /* Walk */
-   { "tpother.8svx",   64, 3, 0, 1, 1, NULL }, /* Teleport Other */
-   { "hitwall.8svx",   64, 3, 0, 1, 1, NULL }, /* Hit Wall */
-   { "eat.8svx",       64, 3, 0, 1, 1, NULL }, /* Eat */
-   { "store1.8svx",    64, 0, 0, 1, 0, NULL }, /* Shopkeeper furious */
-   { "store2.8svx",    64, 0, 0, 1, 0, NULL }, /* Shopkeeper angry */
-   { "store3.8svx",    64, 0, 0, 1, 0, NULL }, /* Shopkeeper glad */
-   { "store4.8svx",    64, 0, 0, 1, 0, NULL }, /* Shopkeeper happy */
-   { "dig.8svx",       64, 0, 0, 1, 1, NULL }, /* Dig */
-   { "opendoor.8svx",  64, 0, 0, 1, 1, NULL }, /* Open door */
-   { "closedoor.8svx", 64, 0, 0, 1, 1, NULL }, /* Close door */
-   { "tplevel.8svx",   64, 0, 0, 1, 0, NULL }, /* Teleport level */
-};
-
-static int channel_last[ 4 ] = { -1, -1, -1, -1 };
-
-static int has_sound = TRUE;
+static int has_sound = FALSE;
 
 ///}
 ///{ "menus"
@@ -566,10 +523,6 @@ errr init_ami( void )
 
    text_mbcs_hook=&mbstowcs;
 
-   if (has_sound) {
-	   /* Set up sound hook */
-	   	event_add_handler(EVENT_SOUND, play_sound, NULL);
-   }
 
    /* Term data pointers */
    term_data *ts = &screen;
@@ -603,7 +556,7 @@ errr init_ami( void )
    /* Read preferences file */
    read_prefs();
 
-   use_graphics=0;
+   //use_graphics=TRUE;
 
    /* Initialize keyboard stuff */
    ie.ie_NextEvent = NULL;
@@ -1012,11 +965,15 @@ errr init_ami( void )
    /* Bring screen to front */
    ScreenToFront( use_pub ? pubscr : amiscr );
 
+   //use_graphics=TRUE;
    /* Load and convert graphics */
    if ( use_graphics )
    {
       MSG( 0, 0, "Loading graphics" );
-      if ( !load_gfx() ) FAIL( NULL );
+      if ( !load_gfx() ) {
+    	  FAIL( NULL );
+    	  return 1;
+      }
 
       /* Check if conversion is necessary */
       if ( use_pub || ( depth_of_bitmap( ts->rp->BitMap ) != depth_of_bitmap( ts->gfxbm )))
@@ -1032,13 +989,39 @@ errr init_ami( void )
       if ( ts->use ) if ( !size_gfx( ts ) ) FAIL( "Out of memory while scaling graphics." );
    }
 
-   /* Load sound effects */
-//   if ( use_sound )
-//   {
-//      MSG( 0, 2, "Loading sound effects" );
-//      init_sound();
-//   }
-
+//   use_graphics=2;
+//   init_graphics_modes();
+//   i = 0;
+//   	do {
+//   		char path[1024];
+//
+//   		/* Check the graphic file */
+//   		if (graphics_modes[i].file[0]) {
+//   			path_build(path, sizeof(path), ANGBAND_DIR_TILES,
+//   					   graphics_modes[i].file);
+//
+//   			if (!file_exists(path)) {
+//   				plog_fmt("Can't find file %s - graphics mode '%s' will be disabled.", path, graphics_modes[i].menuname);
+//   				graphics_modes[i].file[0] = 0;
+//   			}
+//   			else
+//   				printf("valid i=%d\n",i);
+//   			if ((i + 1) == use_graphics) {
+//   				current_graphics_mode = &(graphics_modes[i]);
+//   			}
+//   		}
+//   	} while (graphics_modes[i++].grafID != 0);
+//
+//   	/* Check availability (default to no graphics) */
+//   	if (!current_graphics_mode->file[0]) {
+//   		use_graphics = GRAPHICS_NONE;
+//   		arg_graphics = FALSE;
+//   		tile_width = 1;
+//   		tile_height = 1;
+//   		printf("Text fall back\n");
+//   	}
+//   	else
+//   		printf("Mode: %s\n",current_graphics_mode->path);
    /* Success */
    return ( 0 );
 }
@@ -1604,7 +1587,7 @@ static errr amiga_clear( void )
    term_data *td = (term_data*)(Term->data);
 
    /* Fill window with background color */
-   SetRast( td->rp, PEN( 0 ));
+   SetRast( td->rp, 0);
 
    return ( 0 );
 }
@@ -1634,8 +1617,8 @@ static errr amiga_pict( int x, int y,int n, const int *ap, const wchar_t *cp, co
       Text( td->rp, (char *) s, 1 );
    }
 
-   static int counter=0;
-   printf("%ld %ld\n",++counter,n);
+//   static int counter=0;
+//   printf("%ld %ld\n",++counter,n);
    return ( 0 );
 }
 
@@ -1925,10 +1908,7 @@ int amiga_tomb( void )
 
    /* Open tomb file */
    if (( file = Open( MTOM, MODE_OLDFILE )) == NULL )
-   {
-      free_bitmap( filebm );
       return( FALSE );
-   }
 
    /* Read file into bitmap */
    for ( plane = 0; plane < 4 && !error; plane++ )
@@ -2263,7 +2243,7 @@ static void cursor_on( term_data *td )
       else
       {
     	 static char c;
-         SetAPen( td->wrp, PEN( CUR_A & 0x0f ));
+         SetAPen( td->wrp, PEN( CUR_A & 0x1f ));
          SetBPen( td->wrp, PEN( CURSOR_PEN ));
          Move( td->wrp, td->fw * td->cursor_xpos, td->fh * td->cursor_ypos + td->fb );
          c=CUR_C;
@@ -2291,7 +2271,7 @@ static void cursor_off( term_data *td )
       else
       {
     	 static char c;
-         SetAPen( td->wrp, PEN( CUR_A & 0x0f ));
+         SetAPen( td->wrp, PEN( CUR_A & 0x1f ));
          SetBPen( td->wrp, PEN( 0 ));
          Move( td->wrp, td->fw * td->cursor_xpos, td->fh * td->cursor_ypos + td->fb );
          c=CUR_C;
@@ -2532,42 +2512,44 @@ int conv_gfx( void )
 ///}
 ///{ "size_gfx()"
 
+#define MAX_WID	198
+#define MAX_HGT	66
 int size_gfx( term_data *td )
 {
 
-//   term_data *ts = &screen;
-//   int depth;
-//   struct BitMap *sbm = td->rp->BitMap;
-//   struct BitMap *tmpbm;
-//
-//   /* Calculate tile bitmap dimensions */
-//   td->gfx_w = 32 * td->fw;
-//   td->gfx_h = 32 * td->fh;
-//
-//   /* Calculate map bitmap dimensions */
-//   td->mpt_w = td->ww / MAX_WID;
-//   td->mpt_h = td->wh / MAX_HGT;
-//   td->map_w = td->mpt_w * 32;
-//   td->map_h = td->mpt_h * 32;
-//
-//   /* Scale tile graphics into map size */
-//   depth = depth_of_bitmap( ts->gfxbm );
-//   if (( td->mapbm = alloc_bitmap( td->map_w, td->map_h, depth, BMF_CLEAR, sbm )) == NULL ) return( FALSE );
-//   scale_bitmap( ts->gfxbm, GFXW, GFXH, td->mapbm, td->map_w, td->map_h );
-//
-//   /* Scale tile graphics */
-//   depth = depth_of_bitmap( ts->gfxbm );
-//   if (( tmpbm = alloc_bitmap( td->gfx_w, td->gfx_h, depth, BMF_CLEAR, sbm )) == NULL ) return( FALSE );
-//   scale_bitmap( ts->gfxbm, GFXW, GFXH, tmpbm, td->gfx_w, td->gfx_h );
-//   if ( td->gfxbm ) free_bitmap( td->gfxbm );
-//   td->gfxbm = tmpbm;
-//
-//   /* Scale tile mask */
-//   depth = depth_of_bitmap( ts->mskbm );
-//   if (( tmpbm = alloc_bitmap( td->gfx_w, td->gfx_h, depth, BMF_CLEAR, sbm )) == NULL ) return( FALSE );
-//   scale_bitmap( ts->mskbm, GFXW, GFXH, tmpbm, td->gfx_w, td->gfx_h );
-//   if ( td->mskbm ) free_bitmap( td->mskbm );
-//   td->mskbm = tmpbm;
+   term_data *ts = &screen;
+   int depth;
+   struct BitMap *sbm = td->rp->BitMap;
+   struct BitMap *tmpbm;
+
+   /* Calculate tile bitmap dimensions */
+   td->gfx_w = 32 * td->fw;
+   td->gfx_h = 32 * td->fh;
+
+   /* Calculate map bitmap dimensions */
+   td->mpt_w = td->ww / MAX_WID;
+   td->mpt_h = td->wh / MAX_HGT;
+   td->map_w = td->mpt_w * 32;
+   td->map_h = td->mpt_h * 32;
+
+   /* Scale tile graphics into map size */
+   depth = depth_of_bitmap( ts->gfxbm );
+   if (( td->mapbm = alloc_bitmap( td->map_w, td->map_h, depth, BMF_CLEAR, sbm )) == NULL ) return( FALSE );
+   scale_bitmap( ts->gfxbm, GFXW, GFXH, td->mapbm, td->map_w, td->map_h );
+
+   /* Scale tile graphics */
+   depth = depth_of_bitmap( ts->gfxbm );
+   if (( tmpbm = alloc_bitmap( td->gfx_w, td->gfx_h, depth, BMF_CLEAR, sbm )) == NULL ) return( FALSE );
+   scale_bitmap( ts->gfxbm, GFXW, GFXH, tmpbm, td->gfx_w, td->gfx_h );
+   if ( td->gfxbm ) free_bitmap( td->gfxbm );
+   td->gfxbm = tmpbm;
+
+   /* Scale tile mask */
+   depth = depth_of_bitmap( ts->mskbm );
+   if (( tmpbm = alloc_bitmap( td->gfx_w, td->gfx_h, depth, BMF_CLEAR, sbm )) == NULL ) return( FALSE );
+   scale_bitmap( ts->mskbm, GFXW, GFXH, tmpbm, td->gfx_w, td->gfx_h );
+   if ( td->mskbm ) free_bitmap( td->mskbm );
+   td->mskbm = tmpbm;
 
    /* Success */
    return( TRUE );
@@ -2585,13 +2567,13 @@ static void put_gfx( struct RastPort *rp, int x, int y, int chr, int col )
    int y0 = y * fh;
    int x1 = x0 + fw - 1;
    int y1 = y0 + fh - 1;
-   int a  = col & 0x1f;
-   int c  = chr & 0x1f;
+   int a  = col & 0x7f;
+   int c  = chr & 0x7f;
 
    /* Just a black tile */
    if ( a == 0 && c == 0 )
    {
-      SetAPen( rp, PEN( 0 ));
+      SetAPen( rp, 0);
       RectFill( rp, x0, y0, x1, y1 );
       return;
    }
@@ -2609,7 +2591,7 @@ static void put_gfx( struct RastPort *rp, int x, int y, int chr, int col )
    /* Draw tile through mask */
    if ( col & 0x40 )
    {
-      SetAPen( rp, PEN(0) );
+      SetAPen( rp, 0 );
       RectFill( rp, x0, y0, x1, y1 );
       BltMaskBitMapRastPort( td->gfxbm, c * fw, a * fh, rp, x0, y0, fw, fh, (ABC|ANBC|ABNC), td->mskbm->Planes[ 0 ] );
    }
@@ -2634,8 +2616,10 @@ static int amiga_fail( char *msg )
        fprintf( stderr, "%s\n", msg );
    }
 
-   /* Free sound memory */
-   free_sound();
+   if (has_sound) {
+	   /* Free sound memory */
+	   free_sound();
+   }
 
    /* Unlock public screen */
    if ( publock )
@@ -3025,26 +3009,8 @@ int init_sound_ami( void )
    char path[2048];
    char buffer[2048];
    ang_file *fff;
-   struct AmiSound *snd;
 
-//   /* Load samples */
-//   for ( i = 0; i < NSAMPLES; i++ )
-//   {
-//      /* Pointer to sound data */
-//      snd = &sound_data[ i ];
-//
-//      /* Should this sample be loaded into memory? */
-//      if ( snd->Memory )
-//      {
-//         /* Construct filename */
-//         sprintf( tmp, "%ssound/%s", DEFAULT_LIB_PATH, snd->Name );
-//
-//         /* Load the sample into memory */
-//         snd->Address = (struct SoundInfo *) PrepareSound( tmp );
-//      }
-//   }
-
-	/* Find and open the config file */
+   /* Find and open the config file */
 	path_build(path, sizeof(path), ANGBAND_DIR_SOUNDS, "sound.cfg");
 	fff = file_open(path, MODE_READ, -1);
 
@@ -3162,7 +3128,7 @@ int init_sound_ami( void )
 
    /* Success */
    has_sound = TRUE;
-
+   event_add_handler(EVENT_SOUND, play_sound, NULL);
    return ( TRUE );
 }
 
@@ -3225,15 +3191,7 @@ void free_sound( void )
 static void play_sound( game_event_type type, game_event_data *data, void *user )
 {
    int v = data->message.type;
-   struct AmiSound *snd;
-   struct AmiSound *old_snd;
-
    static int rc=0;
-   int rate;
-   int channel;
-   int old;
-   char tmp[256];
-   int i;
 //   printf("would choose out of %d samples\n",samples[v].num);//,message_sound_name(v));
 //   for(i=0; i<samples[v].num; ++i)
 //	   printf("\t%s\n",samples[v].paths[i]);
@@ -3253,65 +3211,6 @@ static void play_sound( game_event_type type, game_event_data *data, void *user 
    PlaySound( si[rc], MAXVOLUME, rc, NORMALRATE, ONCE );
    ++rc;
    if (rc==4) rc=0;
-
-   return;
-   if ( has_sound )
-   {
-      /* Pointer to sound data */
-      snd = &sound_data[ v ];
-
-      /* Channel number */
-      channel = snd->Channel;
-
-      /* Last sample played on channel */
-      old = channel_last[ channel ];
-
-      /* Sample Rate */
-      rate = snd->Rate;
-
-      /* Random rate on some sounds */
-      if ( v == 2 /*SOUND_HIT*/ || v == 3 /*SOUND_MISS*/ )
-      {
-         rate = rate - 50 +rand()%150;
-      }
-
-      /* Pointer to old sound data */
-      old_snd = old >= 0 ? &sound_data[ old ] : NULL;
-
-      /* Stop sound currently playing on this channel */
-      StopSound( channel );
-
-      /* Free old sample if required */
-      if ( !old_snd->Memory && old_snd->Address && old != v )
-      {
-         /* Remove it from memory */
-         RemoveSound( old_snd->Address );
-
-         /* Clear address field */
-         old_snd->Address = NULL;
-      }
-
-      /* Load new sample into memory if required */
-      if ( !snd->Memory && snd->Address == NULL )
-      {
-         /* Construct filename */
-         sprintf( tmp, "%ssound/%s", DEFAULT_LIB_PATH, snd->Name );
-
-         /* Load the sample into memory */
-         snd->Address = (struct SoundInfo *) PrepareSound( tmp );
-
-      }
-
-      /* Make sure the sample is loaded into memory */
-      if ( snd->Address )
-      {
-         /* Start playing the sound */
-         PlaySound( snd->Address, snd->Volume, channel, rate, snd->Repeats );
-      }
-
-      /* Store sample number */
-      channel_last[ channel ] = v;
-   }
 }
 
 ///}
