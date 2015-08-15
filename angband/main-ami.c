@@ -2123,13 +2123,58 @@ void handle_rawkey( UWORD code, UWORD qual, APTR addr )
    ie.ie_EventAddress = (APTR *) *((ULONG *) addr );
    len = MapRawKey( &ie, buf, 80, NULL );
 
+
+   byte bqual= (IEQUALIFIER_NUMERICPAD & qual) ? KC_MOD_KEYPAD : 0;
+   if ( qual & (IEQUALIFIER_LSHIFT || IEQUALIFIER_RSHIFT ))
+	   bqual|=KC_MOD_SHIFT;
+   if ( qual & (IEQUALIFIER_LALT || IEQUALIFIER_RALT ))
+	   bqual|=KC_MOD_ALT;
+   if ( qual & IEQUALIFIER_CONTROL)
+	   bqual|=KC_MOD_CONTROL;
+
+
+   //Alkis: It would be probably cleaner to specify rawkeys and vanilakeys at the window
+   // but heck...let's stay with this...
+   if (len==2 && buf[0]==-101) {
+	   int i;
+	   switch (buf[1]) {
+	   case 68:
+		   i=ARROW_LEFT;
+		   break;
+	   case 67:
+		   i=ARROW_RIGHT;
+		   break;
+	   case 65:
+		   i=ARROW_UP;
+		   break;
+	   case 66:
+		   i=ARROW_DOWN;
+		   break;
+	   default:
+//		   printf("\nlen: %d qual=%d \n",len,bqual);
+//		   printf("Need fix on arrow keys?[%d]\n",buf[1]);
+		   break;
+	   }
+	   Term_keypress(i,bqual);
+   } else if (len==3 && buf[0]==-101 && buf[2]==126) {
+	   int i;
+	   i=KC_F1+buf[1]-48;
+	   Term_keypress(i,bqual);
+   } else if (len==4 && buf[0]==-101 && buf[1]==49 && buf[3]==126) {
+   	   int i;
+   	   i=KC_F1+buf[2]-48;
+   	   Term_keypress(i,bqual);
+   } else {
+//	   printf("\nlen: %d qual=%d \n",len,bqual);
    /* Send ANSI sequence to meta-terminal */
    for ( i = 0; i < len; i++ )
    {
       if( !iconified )
       {
-         Term_keypress( (unsigned char) buf[ i ],0);
+//    	  printf("%d ",buf[i]);
+         Term_keypress( (unsigned char) buf[ i ],bqual);
       }
+   }
    }
 }
 
