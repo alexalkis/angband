@@ -2125,13 +2125,19 @@ void handle_rawkey( UWORD code, UWORD qual, APTR addr )
 
 
    byte bqual= (IEQUALIFIER_NUMERICPAD & qual) ? KC_MOD_KEYPAD : 0;
-   if ( qual & (IEQUALIFIER_LSHIFT || IEQUALIFIER_RSHIFT ))
+   if ( qual & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT ))
 	   bqual|=KC_MOD_SHIFT;
-   if ( qual & (IEQUALIFIER_LALT || IEQUALIFIER_RALT ))
+   if ( qual & (IEQUALIFIER_LALT | IEQUALIFIER_RALT ))
 	   bqual|=KC_MOD_ALT;
    if ( qual & IEQUALIFIER_CONTROL)
 	   bqual|=KC_MOD_CONTROL;
 
+#ifdef _DEBUGKEYCODES_
+   printf("len: %d bqual=%d qual=%d Keycodes: ",len,bqual,qual);
+   for(i=0; i<len; ++i)
+	   printf("%d [%c] ",(unsigned int)buf[i],buf[i]);
+   printf(" \n");
+#endif
 
    //Alkis: It would be probably cleaner to specify rawkeys and vanilakeys at the window
    // but heck...let's stay with this...
@@ -2288,8 +2294,8 @@ static void cursor_on( term_data *td )
       else
       {
     	 static char c;
-         SetAPen( td->wrp, PEN( CUR_A & 0x1f ));
-         SetBPen( td->wrp, PEN( CURSOR_PEN ));
+         SetAPen( td->wrp, CUR_A & 0x1f );
+         SetBPen( td->wrp, CURSOR_PEN );
          Move( td->wrp, td->fw * td->cursor_xpos, td->fh * td->cursor_ypos + td->fb );
          c=CUR_C;
          Text( td->wrp, &c, 1 );
@@ -2316,8 +2322,8 @@ static void cursor_off( term_data *td )
       else
       {
     	 static char c;
-         SetAPen( td->wrp, PEN( CUR_A & 0x1f ));
-         SetBPen( td->wrp, PEN( 0 ));
+         SetAPen( td->wrp, CUR_A & 0x1f );
+         SetBPen( td->wrp, 0 );
          Move( td->wrp, td->fw * td->cursor_xpos, td->fh * td->cursor_ypos + td->fb );
          c=CUR_C;
          Text( td->wrp, &c, 1 );
@@ -2331,37 +2337,38 @@ static void cursor_off( term_data *td )
 
 static void cursor_anim( void )
 {
-	/*
+
    term_data *td = term_curs;
-   int x0, y0, x1, y1, i = px, j = py;
+   int x0, y0, x1, y1;//, i = px, j = py;
    byte tc,ta;
 
    if ( !term_curs ) return;
 
    td->cursor_frame = ++(td->cursor_frame) % 8;
 
-   ///* Small cursor on map
-   if ( td->cursor_map )
-   {
-      if ( td->cursor_frame & 2 )
-      {
-         SetAPen( td->wrp, PEN( CURSOR_PEN ));
-         RectFill( td->wrp,
-                   td->map_x + i * td->mpt_w,
-                   td->map_y + j * td->mpt_h,
-                   td->map_x + ( i + 1) * td->mpt_w - 1,
-                   td->map_y + ( j + 1 ) * td->mpt_h - 1
-                 );
-      }
-      else
-      {
-         ta = (( p_ptr->pclass * 10 + p_ptr->prace) >> 5 ) + 12;
-         tc = (( p_ptr->pclass * 10 + p_ptr->prace) & 0x1f );
-         put_gfx_map( td, i, j, tc, ta );
-      }
-   }
-
-   else if ( td->cursor_visible && !iconified )
+//   ///* Small cursor on map
+//   if ( td->cursor_map )
+//   {
+//      if ( td->cursor_frame & 2 )
+//      {
+//         SetAPen( td->wrp, PEN( CURSOR_PEN ));
+//         RectFill( td->wrp,
+//                   td->map_x + i * td->mpt_w,
+//                   td->map_y + j * td->mpt_h,
+//                   td->map_x + ( i + 1) * td->mpt_w - 1,
+//                   td->map_y + ( j + 1 ) * td->mpt_h - 1
+//                 );
+//      }
+//      else
+//      {
+//         ta = (( p_ptr->pclass * 10 + p_ptr->prace) >> 5 ) + 12;
+//         tc = (( p_ptr->pclass * 10 + p_ptr->prace) & 0x1f );
+//         put_gfx_map( td, i, j, tc, ta );
+//      }
+//   }
+//
+//   else
+	  if ( td->cursor_visible && !iconified )
    {
       //* Hack - Don't draw cursor at (0,0)
       if ( td->cursor_xpos == 0 && td->cursor_ypos == 0 ) return;
@@ -2390,13 +2397,15 @@ static void cursor_anim( void )
       ///* Draw a filled cursor
       else
       {
-         SetAPen( td->wrp, PEN( CUR_A & 0x0f ));
-         SetBPen( td->wrp, ( td->cursor_frame < 4 ) ? PEN( CURSOR_PEN ) : PEN( 0 ));
+    	  static char c;
+         SetAPen( td->wrp, CUR_A & 0x1f );
+         SetBPen( td->wrp, ( td->cursor_frame < 4 ) ? CURSOR_PEN :0 );
          Move( td->wrp, td->fw * td->cursor_xpos, td->fh * td->cursor_ypos + td->fb );
-         Text( td->wrp, &CUR_C, 1 );
+         c=CUR_C;
+         Text( td->wrp, &c, 1 );
       }
    }
-   */
+
 }
 
 ///}
