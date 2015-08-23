@@ -35,8 +35,13 @@ enum {
 
 #define HIST_SIZE			FLAG_SIZE(HIST_MAX)
 
+#ifndef NDEBUG
 #define hist_has(f, flag)	flag_has_dbg(f, HIST_SIZE, flag, #f, #flag)
 #define hist_on(f, flag)	flag_on_dbg(f, HIST_SIZE, flag, #f, #flag)
+#else
+#define hist_has(f, flag)	flag_has(f, HIST_SIZE, flag)
+#define hist_on(f, flag)	flag_on(f, HIST_SIZE, flag)
+#endif
 #define hist_off(f, flag)	flag_off(f, HIST_SIZE, flag)
 #define hist_wipe(f)		flag_wipe(f, HIST_SIZE)
 #define hist_copy(f1, f2)	flag_copy(f1, f2, HIST_SIZE)

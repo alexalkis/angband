@@ -172,6 +172,9 @@ static void init_stuff(void)
 
 	/* Initialize */
 	init_file_paths(configpath, libpath, datapath);
+#ifdef USE_AMI
+	init_flag_tables();
+#endif
 }
 
 

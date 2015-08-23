@@ -18,6 +18,41 @@
 
 #include "z-bitflag.h"
 
+#define EXPENSIVE_OFFSETS
+
+/**
+ * Precalculate offsets and bitflags (I can't really tell if it helps or not,
+ * no perceived speedup or slow down)
+ * The size (128) is a guess. I had it on 64, but then parsing in monsters bombed out,
+ * flag reached 83 on monsters.  I guess 128 is safe.
+ */
+
+#ifdef EXPENSIVE_OFFSETS
+#define TF_SIZE	128
+static u_int16_t 	tflag_offset[TF_SIZE];
+static u_int16_t   tflag_binary[TF_SIZE];
+
+void init_flag_tables(void)
+{
+	int i;
+	for(i=0; i<TF_SIZE; ++i) {
+		tflag_offset[i]=FLAG_OFFSET(i);
+		tflag_binary[i]=FLAG_BINARY(i);
+
+	}
+}
+
+#undef FLAG_OFFSET
+#undef FLAG_BINARY
+
+#define FLAG_OFFSET(x)	tflag_offset[x]
+#define FLAG_BINARY(x)	tflag_binary[x]
+#else
+void init_flag_tables(void)
+{
+
+}
+#endif
 
 /**
  * Tests if a flag is "on" in a bitflag set.

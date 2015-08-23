@@ -54,14 +54,19 @@ enum
 
 #define ID_SIZE                	FLAG_SIZE(ID_MAX)
 
+#ifndef NDEBUG
 #define id_has(f, flag)        	flag_has_dbg(f, ID_SIZE, flag, #f, #flag)
+#define id_on(f, flag)         		flag_on_dbg(f, ID_SIZE, flag, #f, #flag)
+#else
+#define id_has(f, flag)        	flag_has(f, ID_SIZE, flag)
+#define id_on(f, flag)         		flag_on(f, ID_SIZE, flag)
+#endif
 #define id_next(f, flag)       	flag_next(f, ID_SIZE, flag)
 #define id_is_empty(f)         	flag_is_empty(f, ID_SIZE)
 #define id_is_full(f)          	flag_is_full(f, ID_SIZE)
 #define id_is_inter(f1, f2)    	flag_is_inter(f1, f2, ID_SIZE)
 #define id_is_subset(f1, f2)   	flag_is_subset(f1, f2, ID_SIZE)
 #define id_is_equal(f1, f2)    	flag_is_equal(f1, f2, ID_SIZE)
-#define id_on(f, flag)         	flag_on_dbg(f, ID_SIZE, flag, #f, #flag)
 #define id_off(f, flag)        	flag_off(f, ID_SIZE, flag)
 #define id_wipe(f)             	flag_wipe(f, ID_SIZE)
 #define id_setall(f)           	flag_setall(f, ID_SIZE)

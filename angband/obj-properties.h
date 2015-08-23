@@ -92,14 +92,20 @@ enum object_flag_id {
 
 #define OF_SIZE                	FLAG_SIZE(OF_MAX)
 
+#ifndef NDEBUG
 #define of_has(f, flag)        	flag_has_dbg(f, OF_SIZE, flag, #f, #flag)
+#define of_on(f, flag)         		flag_on_dbg(f, OF_SIZE, flag, #f, #flag)
+#else
+#define of_has(f, flag)        	flag_has(f, OF_SIZE, flag)
+#define of_on(f, flag)         		flag_on(f, OF_SIZE, flag)
+#endif
+
 #define of_next(f, flag)       	flag_next(f, OF_SIZE, flag)
 #define of_is_empty(f)         	flag_is_empty(f, OF_SIZE)
 #define of_is_full(f)          	flag_is_full(f, OF_SIZE)
 #define of_is_inter(f1, f2)    	flag_is_inter(f1, f2, OF_SIZE)
 #define of_is_subset(f1, f2)   	flag_is_subset(f1, f2, OF_SIZE)
 #define of_is_equal(f1, f2)    	flag_is_equal(f1, f2, OF_SIZE)
-#define of_on(f, flag)         	flag_on_dbg(f, OF_SIZE, flag, #f, #flag)
 #define of_off(f, flag)        	flag_off(f, OF_SIZE, flag)
 #define of_wipe(f)             	flag_wipe(f, OF_SIZE)
 #define of_setall(f)           	flag_setall(f, OF_SIZE)
@@ -112,14 +118,19 @@ enum object_flag_id {
 
 #define KF_SIZE                	FLAG_SIZE(KF_MAX)
 
+#ifndef NDEBUG
 #define kf_has(f, flag)        	flag_has_dbg(f, KF_SIZE, flag, #f, #flag)
+#define kf_on(f, flag)         		flag_on_dbg(f, KF_SIZE, flag, #f, #flag)
+#else
+#define kf_has(f, flag)        	flag_has(f, KF_SIZE, flag)
+#define kf_on(f, flag)         		flag_on(f, KF_SIZE, flag)
+#endif
 #define kf_next(f, flag)       	flag_next(f, KF_SIZE, flag)
 #define kf_is_empty(f)         	flag_is_empty(f, KF_SIZE)
 #define kf_is_full(f)          	flag_is_full(f, KF_SIZE)
 #define kf_is_inter(f1, f2)    	flag_is_inter(f1, f2, KF_SIZE)
 #define kf_is_subset(f1, f2)   	flag_is_subset(f1, f2, KF_SIZE)
 #define kf_is_equal(f1, f2)    	flag_is_equal(f1, f2, KF_SIZE)
-#define kf_on(f, flag)         	flag_on_dbg(f, KF_SIZE, flag, #f, #flag)
 #define kf_off(f, flag)        	flag_off(f, KF_SIZE, flag)
 #define kf_wipe(f)             	flag_wipe(f, KF_SIZE)
 #define kf_setall(f)           	flag_setall(f, KF_SIZE)

@@ -43,8 +43,13 @@ typedef enum
 
 #define ITYPE_SIZE              FLAG_SIZE(ITYPE_MAX)
 
+#ifndef NDEBUG
 #define itype_has(f, flag)        	flag_has_dbg(f, ITYPE_SIZE, flag, #f, #flag)
 #define itype_on(f, flag)         	flag_on_dbg(f, ITYPE_SIZE, flag, #f, #flag)
+#else
+#define itype_has(f, flag)        	flag_has(f, ITYPE_SIZE, flag)
+#define itype_on(f, flag)         	flag_on(f, ITYPE_SIZE, flag)
+#endif
 #define itype_wipe(f)             	flag_wipe(f, ITYPE_SIZE)
 
 /*

@@ -50,7 +50,7 @@
 #include "ui-prefs.h"
 #include "grafmode.h"
 
-const char help_ami[] = "Basic Amiga, will probably crash :P";
+const char help_ami[] = "Amiga display (emulated text curses, no graphics)";
 
 ///}
 ///{ "macros"
@@ -272,7 +272,9 @@ static ULONG palette32[ 32 * 3 + 2 ];
 static UWORD palette4[ 32 ];
 
 /* Version string */
-static char ver[] = "$VER: " VERSION " (" __DATE__ ")";
+static char ver[] __attribute__((used)) = "$VER: " VERSION " ("
+		#include "builddate.h"
+		")";
 
 ///}
 ///{ "sound"

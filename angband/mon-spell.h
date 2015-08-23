@@ -44,7 +44,11 @@ enum mon_spell_type {
 #define MIN_NONINNATE_SPELL    (FLAG_START + 26)
 
 /** Macros **/
+#ifndef NDEBUG
 #define rsf_has(f, flag)       flag_has_dbg(f, RSF_SIZE, flag, #f, #flag)
+#else
+#define rsf_has(f, flag)       flag_has(f, RSF_SIZE, flag)
+#endif
 #define rsf_next(f, flag)      flag_next(f, RSF_SIZE, flag)
 #define rsf_is_empty(f)        flag_is_empty(f, RSF_SIZE)
 #define rsf_is_full(f)         flag_is_full(f, RSF_SIZE)

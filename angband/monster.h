@@ -43,14 +43,20 @@ enum
 
 #define MFLAG_SIZE                FLAG_SIZE(MFLAG_MAX)
 
+#ifndef NDEBUG
 #define mflag_has(f, flag)        flag_has_dbg(f, MFLAG_SIZE, flag, #f, #flag)
+#define mflag_on(f, flag)         flag_on_dbg(f, MFLAG_SIZE, flag, #f, #flag)
+#else
+#define mflag_has(f, flag)        flag_has(f, MFLAG_SIZE, flag)
+#define mflag_on(f, flag)         flag_on(f, MFLAG_SIZE, flag)
+#endif
 #define mflag_next(f, flag)       flag_next(f, MFLAG_SIZE, flag)
 #define mflag_is_empty(f)         flag_is_empty(f, MFLAG_SIZE)
 #define mflag_is_full(f)          flag_is_full(f, MFLAG_SIZE)
 #define mflag_is_inter(f1, f2)    flag_is_inter(f1, f2, MFLAG_SIZE)
 #define mflag_is_subset(f1, f2)   flag_is_subset(f1, f2, MFLAG_SIZE)
 #define mflag_is_equal(f1, f2)    flag_is_equal(f1, f2, MFLAG_SIZE)
-#define mflag_on(f, flag)         flag_on_dbg(f, MFLAG_SIZE, flag, #f, #flag)
+
 #define mflag_off(f, flag)        flag_off(f, MFLAG_SIZE, flag)
 #define mflag_wipe(f)             flag_wipe(f, MFLAG_SIZE)
 #define mflag_setall(f)           flag_setall(f, MFLAG_SIZE)

@@ -18,14 +18,19 @@ enum
 
 #define TRF_SIZE                FLAG_SIZE(TRF_MAX)
 
+#ifndef NDEBUG
 #define trf_has(f, flag)        flag_has_dbg(f, TRF_SIZE, flag, #f, #flag)
+#define trf_on(f, flag)         flag_on_dbg(f, TRF_SIZE, flag, #f, #flag)
+#else
+#define trf_has(f, flag)        flag_has(f, TRF_SIZE, flag)
+#define trf_on(f, flag)         flag_on(f, TRF_SIZE, flag)
+#endif
 #define trf_next(f, flag)       flag_next(f, TRF_SIZE, flag)
 #define trf_is_empty(f)         flag_is_empty(f, TRF_SIZE)
 #define trf_is_full(f)          flag_is_full(f, TRF_SIZE)
 #define trf_is_inter(f1, f2)    flag_is_inter(f1, f2, TRF_SIZE)
 #define trf_is_subset(f1, f2)   flag_is_subset(f1, f2, TRF_SIZE)
 #define trf_is_equal(f1, f2)    flag_is_equal(f1, f2, TRF_SIZE)
-#define trf_on(f, flag)         flag_on_dbg(f, TRF_SIZE, flag, #f, #flag)
 #define trf_off(f, flag)        flag_off(f, TRF_SIZE, flag)
 #define trf_wipe(f)             flag_wipe(f, TRF_SIZE)
 #define trf_setall(f)           flag_setall(f, TRF_SIZE)

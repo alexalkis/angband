@@ -53,7 +53,12 @@ enum
 
 #define PF_SIZE                FLAG_SIZE(PF_MAX)
 
+#ifndef NDEBUG
 #define pf_has(f, flag)        flag_has_dbg(f, PF_SIZE, flag, #f, #flag)
+#else
+
+#define pf_has(f, flag)        flag_has(f, PF_SIZE, flag)
+#endif
 #define pf_next(f, flag)       flag_next(f, PF_SIZE, flag)
 #define pf_is_empty(f)         flag_is_empty(f, PF_SIZE)
 #define pf_is_full(f)          flag_is_full(f, PF_SIZE)
