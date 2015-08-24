@@ -705,6 +705,7 @@ static struct panel *get_panel_topleft(void) {
 static struct panel *get_panel_midleft(void) {
 	struct panel *p = panel_allocate(9);
 
+
 	panel_line(p, max_color(player->lev, player->max_lev),
 			"Level", "%d", player->lev);
 	panel_line(p, max_color(player->exp, player->max_exp),
@@ -713,11 +714,15 @@ static struct panel *get_panel_midleft(void) {
 	panel_line(p, COLOUR_L_GREEN, "Adv Exp", "%s", show_adv_exp());
 	panel_space(p);
 	panel_line(p, COLOUR_L_GREEN, "Gold", "%d", player->au);
+#ifndef USE_AMI
 	panel_line(p, COLOUR_L_GREEN, "Burden", "%.1f lbs",
 			player->upkeep->total_weight / 10.0F);
+#else
+	panel_line(p, COLOUR_L_GREEN, "Burden", "%.1f lbs",
+				player->upkeep->total_weight / 10.0);
+#endif
 	panel_line(p, COLOUR_L_GREEN, "Speed", "%s", show_speed());
 	panel_line(p, COLOUR_L_GREEN, "Max Depth", "%s", show_depth());
-
 	return p;
 }
 
@@ -845,6 +850,10 @@ static const struct {
 void display_player_xtra_info(void)
 {
 	size_t i;
+
+	printf("NELEMENTS: %d\n",N_ELEMENTS(panels));
+
+
 	for (i = 0; i < N_ELEMENTS(panels); i++) {
 		struct panel *p = panels[i].panel();
 		display_panel(p, panels[i].align_left, &panels[i].bounds);
@@ -876,8 +885,10 @@ void display_player_xtra_info(void)
  */
 void display_player(int mode)
 {
+	printf("Ok mode=%d\n",mode);
 	/* Erase screen */
 	clear_from(0);
+
 
 	/* When not playing, do not display in subwindows */
 	if (Term != angband_term[0] && !player->upkeep->playing) return;
@@ -1142,11 +1153,14 @@ void do_cmd_change_name(void)
 
 	bool more = TRUE;
 
+	printf("Here we go...\n");
+
 	/* Prompt */
 	p = "['c' to change name, 'f' to file, 'h' to change mode, or ESC]";
 
 	/* Save screen */
 	screen_save();
+
 
 	/* Forever */
 	while (more) {
