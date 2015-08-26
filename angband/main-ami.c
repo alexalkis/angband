@@ -827,7 +827,7 @@ errr init_ami( void )
           backdrop ? TAG_IGNORE : WA_ScreenTitle, VERSION,
           ( backdrop || ts->notitle ) ? TAG_IGNORE : WA_Title, ts->name,
           WA_Activate, TRUE,
-          WA_RMBTrap, !use_menus,
+          WA_RMBTrap, TRUE,/*!use_menus,*/
           WA_ReportMouse, TRUE,
           WA_IDCMP, IDCMP_RAWKEY | IDCMP_INTUITICKS | IDCMP_MOUSEMOVE | IDCMP_MOUSEBUTTONS | IDCMP_MENUPICK | IDCMP_MENUVERIFY,
           TAG_END )) == NULL )
@@ -935,6 +935,7 @@ errr init_ami( void )
               WA_ScreenTitle, VERSION,
               tc->notitle ? TAG_IGNORE : WA_Title, tc->name,
               WA_ReportMouse, TRUE,
+
               TAG_END )) == NULL )
       {
          FAIL("Unable to open recall window.");
@@ -1778,6 +1779,53 @@ static errr amiga_flush( int v )
 }
 
 ///}
+
+static void pixel_to_square(int * const x, int * const y,
+                            const int ox, const int oy)
+{
+	///TODO: fix the hard-coding of topaz 8 here
+	(*x) = ox / 8;
+	(*y) = oy / 8;
+}
+
+static void doMouseButtons(struct IntuiMessage *msg)
+{
+	byte bqual=0;
+
+	if (msg->Qualifier & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT))
+		bqual |= KC_MOD_SHIFT;
+	if (msg->Qualifier & (IEQUALIFIER_LALT | IEQUALIFIER_RALT))
+		bqual |= KC_MOD_ALT;
+	if (msg->Qualifier & IEQUALIFIER_CONTROL)
+		bqual |= KC_MOD_CONTROL;
+
+	bqual<<=4;
+
+	int x=msg->MouseX;
+	int y=msg->MouseY;
+
+	switch (msg->Code) {
+	    case SELECTDOWN:
+	    	bqual+=1;
+	    	/* The co-ordinates are only used in Angband format. */
+			pixel_to_square(&x, &y, x, y);
+			Term_mousepress(x, y, bqual);
+			break;
+	    case SELECTUP:
+	    	break;
+	    case MENUDOWN:
+	    	bqual+=2;
+			/* The co-ordinates are only used in Angband format. */
+			pixel_to_square(&x, &y, x, y);
+			Term_mousepress(x, y, bqual);
+			break;
+	    case MENUUP:
+	    	break;
+	    default:
+	    	break;
+	}
+
+}
 ///{ "amiga_event()" - Wait for an event, and handle it.
 
 static errr amiga_event( int v )
@@ -1840,6 +1888,8 @@ static errr amiga_event( int v )
             pointer_visible = TRUE;
          }
 
+         if (iclass==IDCMP_MOUSEBUTTONS)
+        	 doMouseButtons(imsg);
          return ( 0 );
       }
 

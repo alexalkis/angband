@@ -851,9 +851,6 @@ void display_player_xtra_info(void)
 {
 	size_t i;
 
-	printf("NELEMENTS: %d\n",N_ELEMENTS(panels));
-
-
 	for (i = 0; i < N_ELEMENTS(panels); i++) {
 		struct panel *p = panels[i].panel();
 		display_panel(p, panels[i].align_left, &panels[i].bounds);
@@ -885,7 +882,6 @@ void display_player_xtra_info(void)
  */
 void display_player(int mode)
 {
-	printf("Ok mode=%d\n",mode);
 	/* Erase screen */
 	clear_from(0);
 
@@ -1153,7 +1149,6 @@ void do_cmd_change_name(void)
 
 	bool more = TRUE;
 
-	printf("Here we go...\n");
 
 	/* Prompt */
 	p = "['c' to change name, 'f' to file, 'h' to change mode, or ESC]";
