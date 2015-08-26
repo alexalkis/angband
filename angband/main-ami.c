@@ -1788,23 +1788,24 @@ static void pixel_to_square(int * const x, int * const y,
 	(*y) = oy / 8;
 }
 
-static void doMouseButtons(struct IntuiMessage *msg)
+
+static void doMouseButtons(UWORD icode,UWORD iqual,WORD ix, WORD iy)
 {
 	byte bqual=0;
 
-	if (msg->Qualifier & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT))
+	if (iqual & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT))
 		bqual |= KC_MOD_SHIFT;
-	if (msg->Qualifier & (IEQUALIFIER_LALT | IEQUALIFIER_RALT))
+	if (iqual & (IEQUALIFIER_LALT | IEQUALIFIER_RALT))
 		bqual |= KC_MOD_ALT;
-	if (msg->Qualifier & IEQUALIFIER_CONTROL)
+	if (iqual & IEQUALIFIER_CONTROL)
 		bqual |= KC_MOD_CONTROL;
 
 	bqual<<=4;
 
-	int x=msg->MouseX;
-	int y=msg->MouseY;
+	int x=ix;
+	int y=iy;
 
-	switch (msg->Code) {
+	switch (icode) {
 	    case SELECTDOWN:
 	    	bqual+=1;
 	    	/* The co-ordinates are only used in Angband format. */
@@ -1835,6 +1836,8 @@ static errr amiga_event( int v )
    UWORD icode;
    UWORD iqual;
    APTR iaddr;
+   WORD ix;
+   WORD iy;
 
    /* Check for messages to the window */
    if (( imsg = (struct IntuiMessage *) GetMsg( screen.win->UserPort )) == NULL )
@@ -1860,6 +1863,9 @@ static errr amiga_event( int v )
       icode = imsg->Code;
       iqual = imsg->Qualifier;
       iaddr = imsg->IAddress;
+      ix=imsg->MouseX;
+      iy=imsg->MouseY;
+
 
       /* Update menus before displaying */
       if ( iclass == IDCMP_MENUVERIFY && icode == MENUHOT && use_menus )
@@ -1888,8 +1894,8 @@ static errr amiga_event( int v )
             pointer_visible = TRUE;
          }
 
-         if (iclass==IDCMP_MOUSEBUTTONS)
-        	 doMouseButtons(imsg);
+         //if (iclass==IDCMP_MOUSEBUTTONS) /* I commented this out in order for mousemove events to propagate. No gain. */
+        	 doMouseButtons(icode,iqual,ix,iy);
          return ( 0 );
       }
 
