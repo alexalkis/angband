@@ -2175,20 +2175,90 @@ void handle_rawkey( UWORD code, UWORD qual, APTR addr )
       }
    }
 
-   /* Convert raw keycode to ANSI sequence */
+
+   byte bqual = (IEQUALIFIER_NUMERICPAD & qual) ? KC_MOD_KEYPAD : 0;
+	if (qual & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT))
+		bqual |= KC_MOD_SHIFT;
+	if (qual & (IEQUALIFIER_LALT | IEQUALIFIER_RALT))
+		bqual |= KC_MOD_ALT;
+	if (qual & IEQUALIFIER_CONTROL)
+		bqual |= KC_MOD_CONTROL;
+
+#ifdef DEBUGKEYBOARD
+	printf("code=%d\n",code);
+#endif
+	/* Handle cursor keys and function keys and then all other keys */
+	switch(code) {
+	case 79:
+		i=ARROW_LEFT;
+		break;
+	case 78:
+		i=ARROW_RIGHT;
+		break;
+	case 76:
+		i=ARROW_UP;
+		break;
+	case 77:
+		i=ARROW_DOWN;
+		break;
+	case 70:
+		i=KC_DELETE;
+		break;
+	case 66:
+		i=KC_TAB;
+		break;
+	case 80:
+	case 81:
+	case 82:
+	case 83:
+	case 84:
+	case 85:
+	case 86:
+	case 87:
+	case 88:
+	case 89:
+		i=KC_F1+code-80;
+		break;
+	default:
+		/* Convert raw keycode to ANSI sequence */
+		   ie.ie_Code = code;
+		   ie.ie_Qualifier = qual;
+		   ie.ie_EventAddress = (APTR *) *((ULONG *) addr );
+		   len = MapRawKey( &ie, buf, 80, NULL );
+#ifdef DEBUGKEYBOARD
+		   printf("code=%d len=%d\n",code,len);
+#endif
+		   /*
+		    * if len>1 then it must be a special key (cursor,function)
+		    * Above we have handled the keydown event of those, so this must be
+		    * the keyup event of it.  We simply ignore it here.
+		    */
+		   if (len!=1) return;
+//		   for ( i = 0; i < len; i++ )
+//		      {
+//		         if( !iconified )
+//		         {
+//
+//		            Term_keypress( (unsigned char) buf[ i ],bqual);
+//		         }
+//		      }
+		   i=buf[0];
+		   break;
+
+	}
+	if (i) Term_keypress(i,bqual);
+}
+
+/*
+   //* Convert raw keycode to ANSI sequence
    ie.ie_Code = code;
    ie.ie_Qualifier = qual;
    ie.ie_EventAddress = (APTR *) *((ULONG *) addr );
    len = MapRawKey( &ie, buf, 80, NULL );
 
 
-   byte bqual= (IEQUALIFIER_NUMERICPAD & qual) ? KC_MOD_KEYPAD : 0;
-   if ( qual & (IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT ))
-	   bqual|=KC_MOD_SHIFT;
-   if ( qual & (IEQUALIFIER_LALT | IEQUALIFIER_RALT ))
-	   bqual|=KC_MOD_ALT;
-   if ( qual & IEQUALIFIER_CONTROL)
-	   bqual|=KC_MOD_CONTROL;
+
+
 
 #ifdef _DEBUGKEYCODES_
    printf("len: %d bqual=%d qual=%d Keycodes: ",len,bqual,qual);
@@ -2230,7 +2300,7 @@ void handle_rawkey( UWORD code, UWORD qual, APTR addr )
    	   Term_keypress(i,bqual);
    } else {
 //	   printf("\nlen: %d qual=%d \n",len,bqual);
-   /* Send ANSI sequence to meta-terminal */
+   ///* Send ANSI sequence to meta-terminal
    for ( i = 0; i < len; i++ )
    {
       if( !iconified )
@@ -2241,6 +2311,7 @@ void handle_rawkey( UWORD code, UWORD qual, APTR addr )
    }
    }
 }
+*/
 
 ///}
 ///{ "handle_menupick()"
