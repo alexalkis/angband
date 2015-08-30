@@ -63,7 +63,6 @@ static void display_scores_aux(const high_score scores[], int from, int to,
 		else
 			put_str(format("%s Hall of Fame", VERSION_NAME), 0, 30);
 
-
 		/* Dump 5 entries */
 		for (n = 0; j < count && n < 5; place++, j++, n++) {
 			const high_score *score = &scores[j];
@@ -74,7 +73,6 @@ static void display_scores_aux(const high_score scores[], int from, int to,
 			const char *user, *gold, *when, *aged;
 			struct player_class *c;
 			struct player_race *r;
-
 
 			/* Hack -- indicate death in yellow */
 			attr = (j == highlight) ? COLOUR_L_GREEN : COLOUR_WHITE;
@@ -87,7 +85,6 @@ static void display_scores_aux(const high_score scores[], int from, int to,
 			mlev = atoi(score->max_lev);
 			cdun = atoi(score->cur_dun);
 			mdun = atoi(score->max_dun);
-
 			/* Hack -- extract the gold and such */
 			for (user = score->uid; isspace((unsigned char)*user); user++)
 				/* loop */;
@@ -97,21 +94,17 @@ static void display_scores_aux(const high_score scores[], int from, int to,
 				/* loop */;
 			for (aged = score->turns; isspace((unsigned char)*aged); aged++)
 				/* loop */;
-
 			/* Dump some info */
 			strnfmt(out_val, sizeof(out_val),
 					"%3d.%9s  %s the %s %s, level %d",
 					place, score->pts, score->who,
 					r ? r->name : "<none>", c ? c->name : "<none>",
 					clev);
-
 			/* Append a "maximum level" */
 			if (mlev > clev)
 				my_strcat(out_val, format(" (Max %d)", mlev), sizeof(out_val));
-
 			/* Dump the first line */
 			c_put_str(attr, out_val, n*4 + 2, 0);
-
 
 			/* Died where? */
 			if (!cdun)
@@ -156,21 +149,26 @@ static void display_scores_aux(const high_score scores[], int from, int to,
 	return;
 }
 
+#ifdef USE_AMI
+#define NOT_ON_STACK static
+/* Was crashing Amiga with 30000 stack */
+#else
+#define NOT_ON_STACK
+#endif
 /**
  * Predict the players location, and display it.
  */
 void predict_score(void)
 {
 	int j;
-	high_score the_score;
+	NOT_ON_STACK high_score the_score;
 
-	high_score scores[MAX_HISCORES];
+	NOT_ON_STACK high_score scores[MAX_HISCORES];
 
 
 	/* Read scores, place current score */
 	highscore_read(scores, N_ELEMENTS(scores));
 	build_score(&the_score, "nobody (yet!)", NULL);
-
 	if (player->is_dead)
 		j = highscore_where(&the_score, scores, N_ELEMENTS(scores));
 	else
@@ -197,7 +195,7 @@ void show_scores(void)
 	if (character_generated) {
 		predict_score();
 	} else {
-		high_score scores[MAX_HISCORES];
+		NOT_ON_STACK high_score scores[MAX_HISCORES];
 		highscore_read(scores, N_ELEMENTS(scores));
 		display_scores_aux(scores, 0, MAX_HISCORES, -1);
 	}
