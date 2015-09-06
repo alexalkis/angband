@@ -766,7 +766,11 @@ void textui_target_closest(void)
 		Term_redraw_section(x, y, x, y);
 
 		/* TODO: what's an appropriate amount of time to spend highlighting */
+#ifdef USE_AMI
+		Term_xtra(TERM_XTRA_DELAY, 7);
+#else
 		Term_xtra(TERM_XTRA_DELAY, 150);
+#endif
 		(void)Term_set_cursor(visibility);
 	}
 }

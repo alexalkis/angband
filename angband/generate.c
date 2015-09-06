@@ -842,6 +842,7 @@ static void cave_clear(struct chunk *c, struct player *p)
 }
 
 
+
 /**
  * Generate a random level.
  *
@@ -857,6 +858,7 @@ void cave_generate(struct chunk **c, struct player *p)
 
 	assert(c);
 
+	//printf("\nTime at entrance: %ld\n",GetSysTime());
 	/* Generate */
 	for (tries = 0; tries < 100 && error; tries++) {
 		struct dun_data dun_body;
@@ -873,6 +875,7 @@ void cave_generate(struct chunk **c, struct player *p)
 		dun->wall = mem_zalloc(z_info->wall_pierce_max * sizeof(struct loc));
 		dun->tunn = mem_zalloc(z_info->tunn_grid_max * sizeof(struct loc));
 
+		//printf("Time pre-generate: %ld\n",GetSysTime());
 		/* Choose a profile and build the level */
 		dun->profile = choose_profile(p->depth);
 		chunk = dun->profile->builder(p);
@@ -903,6 +906,8 @@ void cave_generate(struct chunk **c, struct player *p)
 			}
 		}
 
+		//printf("Time pre-clear: %ld\n",GetSysTime());
+
 		/* Clear generation flags. */
 		for (y = 0; y < chunk->height; y++) {
 			for (x = 0; x < chunk->width; x++) {
@@ -912,6 +917,8 @@ void cave_generate(struct chunk **c, struct player *p)
 				sqinfo_off(chunk->squares[y][x].info, SQUARE_MON_RESTRICT);
 			}
 		}
+
+		//printf("Time post-clear: %ld\n",GetSysTime());
 
 		/* Regenerate levels that overflow their maxima */
 		if (cave_monster_max(chunk) >= z_info->level_monster_max)
@@ -932,12 +939,14 @@ void cave_generate(struct chunk **c, struct player *p)
 		cave_clear(*c, p);
 	*c = chunk;
 
+	//printf("Time post-cave_clear: %ld\n",GetSysTime());
 	/* Place dungeon squares to trigger feeling (not in town) */
-	if (player->depth)
+	if (player->depth) {
 		place_feeling(*c);
+	//printf("Time post-place_feeling: %ld\n",GetSysTime());
 
 	/* Save the town */
-	else if (!chunk_find_name("Town")) {
+	} else if (!chunk_find_name("Town")) {
 		struct chunk *town = chunk_write(0, 0, z_info->town_hgt,
 										 z_info->town_wid, FALSE, FALSE, FALSE);
 		town->name = string_make("Town");
@@ -945,21 +954,25 @@ void cave_generate(struct chunk **c, struct player *p)
 	}
 
 	(*c)->feeling = calc_obj_feeling(*c) + calc_mon_feeling(*c);
+	//printf("Time post-feeling: %ld\n",GetSysTime());
 
 	/* Validate the dungeon (we could use more checks here) */
 	chunk_validate_objects(*c);
 
+	//printf("Time post-validate: %ld\n",GetSysTime());
 	/* The dungeon is ready */
 	character_dungeon = TRUE;
 
 	/* Free old and allocate new known level */
 	if (cave_k)
 		cave_free(cave_k);
+	//printf("Time post-free: %ld (%dx%d=%d)\n",GetSysTime(),cave->height, cave->width,cave->height*cave->width);
 	cave_k = cave_new(cave->height, cave->width);
 	if (!cave->depth)
 		cave_known();
 
 	(*c)->created_at = turn;
+	//printf("Time at return: %ld\n",GetSysTime());
 }
 
 /**

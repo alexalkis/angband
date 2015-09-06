@@ -1679,58 +1679,50 @@ static errr amiga_noutf8_text( int x, int y, int n, int a, const char *s )
 ///}
 ///{ "amiga_xtra()" - Handle a "special request"
 
-static errr amiga_xtra( int n, int v )
+static errr amiga_xtra(int n, int v)
 {
-   term_data *td = (term_data*)(Term->data);
+	term_data *td = (term_data*) (Term->data);
 
-   /* Analyze the request */
-   switch ( n )
-   {
+	/* Analyze the request */
+	switch (n) {
 
-      /* Wait for event */
-      case TERM_XTRA_EVENT:
+	/* Wait for event */
+	case TERM_XTRA_EVENT:
 
-         return ( amiga_event( v ));
+		return (amiga_event(v));
 
+		/* Flush input */
+	case TERM_XTRA_FLUSH:
 
-      /* Flush input */
-      case TERM_XTRA_FLUSH:
+		return (amiga_flush(v));
 
-         return ( amiga_flush( v ));
+		/* Make a noise */
+	case TERM_XTRA_CLEAR:
 
+		return (amiga_clear());
 
-      /* Make a noise */
-      case TERM_XTRA_CLEAR:
+		/* Change cursor visibility */
+	case TERM_XTRA_SHAPE:
 
-         return ( amiga_clear());
+		/* Cursor on */
+		if (v) {
+			cursor_on(td);
+			td->cursor_visible = TRUE;
+		}
+		/* Cursor off */
+		else {
+			cursor_off(td);
+			td->cursor_visible = FALSE;
+		}
+		return (0);
 
+		/* Flash screen */
+	case TERM_XTRA_NOISE:
 
-      /* Change cursor visibility */
-      case TERM_XTRA_SHAPE:
+		DisplayBeep(use_pub ? pubscr : amiscr);
+		return (0);
 
-         /* Cursor on */
-         if ( v )
-         {
-            cursor_on( td );
-            td->cursor_visible = TRUE;
-         }
-         /* Cursor off */
-         else
-         {
-            cursor_off( td );
-            td->cursor_visible = FALSE;
-         }
-         return ( 0 );
-
-
-      /* Flash screen */
-      case TERM_XTRA_NOISE:
-
-         DisplayBeep( use_pub ? pubscr : amiscr );
-         return ( 0 );
-
-
-      /* Play a sound */
+		/* Play a sound */
 //      case TERM_XTRA_SOUND:
 //
 //         if ( has_sound )
@@ -1738,28 +1730,32 @@ static errr amiga_xtra( int n, int v )
 //            play_sound( v );
 //         }
 //         return ( 0 );
+		/* Delay */
+	case TERM_XTRA_DELAY:
+		if (v > 0)
+			Delay(v);
+		//printf("%d\n",v);
+		return 0;
 
+		/* React on global changes */
+	case TERM_XTRA_REACT:
 
-      /* React on global changes */
-      case TERM_XTRA_REACT:
+		return (amiga_react(v));
 
-         return ( amiga_react( v ));
+	case TERM_XTRA_LEVEL:
 
+		term_curs = td;
+		return (0);
 
-      case TERM_XTRA_LEVEL:
+		/* Unknown request type */
+	default:
 
-         term_curs = td;
-         return( 0 );
+		return (1);
 
-      /* Unknown request type */
-      default:
+	}
 
-         return ( 1 );
-
-   }
-
-   /* Shouldn't be able to get here */
-   return ( 1 );
+	/* Shouldn't be able to get here */
+	return (1);
 }
 
 ///}
@@ -2132,28 +2128,28 @@ void handle_rawkey( UWORD code, UWORD qual, APTR addr )
       pointer_visible = FALSE;
    }
 
-   /* Numeric keypad pressed with qualifier? */
+   //Numeric keypad pressed with qualifier?
    if (( qual & IEQUALIFIER_NUMERICPAD ) && ( qual & 0xff ))
    {
-      /* Direction key? (1,2,3,4,6,7,8,9) */
+      // Direction key? (1,2,3,4,6,7,8,9)
       if (( code >= 0x1d && code <= 0x1f ) ||
           ( code == 0x2d || code == 0x2f ) ||
           ( code >= 0x3d && code <= 0x3f ))
       {
-         /* Shift/Ctrl/Alt/Amiga keys */
+         // Shift/Ctrl/Alt/Amiga keys
          q = qual & 0xff;
 
-         /* Shift + Direction */
+         //Shift + Direction
          if ( q == IEQUALIFIER_LSHIFT || q == IEQUALIFIER_RSHIFT )
          {
-            /* Fake a keypress 'run' */
+            //Fake a keypress 'run'
             Term_keypress( '.' ,0);
 
-            /* Remove shift key from event */
+            //Remove shift key from event
             qual &= ~( IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT );
          }
 
-         /* Alt + Direction */
+         //Alt + Direction
          else if ( q == IEQUALIFIER_LALT || q == IEQUALIFIER_RALT )
          {
             /* Fake a keypress 'tunnel' */
@@ -2163,13 +2159,13 @@ void handle_rawkey( UWORD code, UWORD qual, APTR addr )
             qual &= ~( IEQUALIFIER_LALT | IEQUALIFIER_RALT );
          }
 
-         /* Ctrl + Direction */
+         //Ctrl + Direction
          else if ( q == IEQUALIFIER_CONTROL )
          {
-            /* Fake a keypress 'open' */
+            // Fake a keypress 'open'
             Term_keypress( 'o',0);
 
-            /* Remove ctrl key from event */
+            //Remove ctrl key from event
             qual &= ~IEQUALIFIER_CONTROL;
          }
       }
@@ -3597,4 +3593,18 @@ int depth_of_bitmap( struct BitMap *bm )
 }
 
 ///}
+
+/// Returns millionths of seconds passed. (Actual seconds wrap at 256)
+ULONG GetSysTime(void) {
+  struct timerequest tr;
+
+  memset(&tr,0,sizeof(tr));
+  OpenDevice(TIMERNAME,UNIT_VBLANK,(struct IORequest *)&tr,0L);
+  tr.tr_node.io_Message.mn_Node.ln_Type = NT_MESSAGE;
+  tr.tr_node.io_Command = TR_GETSYSTIME;
+  DoIO((struct IORequest *)&tr);
+  CloseDevice((struct IORequest *)&tr);
+
+  return (tr.tr_time.tv_secs&0xff)*1000000+tr.tr_time.tv_micro;
+}
 
