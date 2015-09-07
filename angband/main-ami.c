@@ -2128,48 +2128,48 @@ void handle_rawkey( UWORD code, UWORD qual, APTR addr )
       pointer_visible = FALSE;
    }
 
-   //Numeric keypad pressed with qualifier?
-   if (( qual & IEQUALIFIER_NUMERICPAD ) && ( qual & 0xff ))
-   {
-      // Direction key? (1,2,3,4,6,7,8,9)
-      if (( code >= 0x1d && code <= 0x1f ) ||
-          ( code == 0x2d || code == 0x2f ) ||
-          ( code >= 0x3d && code <= 0x3f ))
-      {
-         // Shift/Ctrl/Alt/Amiga keys
-         q = qual & 0xff;
-
-         //Shift + Direction
-         if ( q == IEQUALIFIER_LSHIFT || q == IEQUALIFIER_RSHIFT )
-         {
-            //Fake a keypress 'run'
-            Term_keypress( '.' ,0);
-
-            //Remove shift key from event
-            qual &= ~( IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT );
-         }
-
-         //Alt + Direction
-         else if ( q == IEQUALIFIER_LALT || q == IEQUALIFIER_RALT )
-         {
-            /* Fake a keypress 'tunnel' */
-            Term_keypress( 'T',0 );
-
-            /* Remove alt key from event */
-            qual &= ~( IEQUALIFIER_LALT | IEQUALIFIER_RALT );
-         }
-
-         //Ctrl + Direction
-         else if ( q == IEQUALIFIER_CONTROL )
-         {
-            // Fake a keypress 'open'
-            Term_keypress( 'o',0);
-
-            //Remove ctrl key from event
-            qual &= ~IEQUALIFIER_CONTROL;
-         }
-      }
-   }
+//   //Numeric keypad pressed with qualifier?
+//   if (( qual & IEQUALIFIER_NUMERICPAD ) && ( qual & 0xff ))
+//   {
+//      // Direction key? (1,2,3,4,6,7,8,9)
+//      if (( code >= 0x1d && code <= 0x1f ) ||
+//          ( code == 0x2d || code == 0x2f ) ||
+//          ( code >= 0x3d && code <= 0x3f ))
+//      {
+//         // Shift/Ctrl/Alt/Amiga keys
+//         q = qual & 0xff;
+//
+//         //Shift + Direction
+//         if ( q == IEQUALIFIER_LSHIFT || q == IEQUALIFIER_RSHIFT )
+//         {
+//            //Fake a keypress 'run'
+//            Term_keypress( '.' ,0);
+//
+//            //Remove shift key from event
+//            qual &= ~( IEQUALIFIER_LSHIFT | IEQUALIFIER_RSHIFT );
+//         }
+//
+//         //Alt + Direction
+//         else if ( q == IEQUALIFIER_LALT || q == IEQUALIFIER_RALT )
+//         {
+//            /* Fake a keypress 'tunnel' */
+//            Term_keypress( 'T',0 );
+//
+//            /* Remove alt key from event */
+//            qual &= ~( IEQUALIFIER_LALT | IEQUALIFIER_RALT );
+//         }
+//
+//         //Ctrl + Direction
+//         else if ( q == IEQUALIFIER_CONTROL )
+//         {
+//            // Fake a keypress 'open'
+//            Term_keypress( 'o',0);
+//
+//            //Remove ctrl key from event
+//            qual &= ~IEQUALIFIER_CONTROL;
+//         }
+//      }
+//   }
 
 
    byte bqual = (IEQUALIFIER_NUMERICPAD & qual) ? KC_MOD_KEYPAD : 0;
