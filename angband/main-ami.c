@@ -23,6 +23,7 @@
 #include "sound-ami.h"
 
 #include <devices/inputevent.h>
+#include <exec/execbase.h>
 #include <exec/memory.h>
 #include <intuition/intuitionbase.h>
 #include <intuition/intuition.h>
@@ -1044,7 +1045,7 @@ static void init_term( term_data *td )
 
    /* Term size */
    td->cols = 80;
-   td->rows = 24;
+   td->rows = 24;//(SysBase->VBlankFrequency==60) ? 24 : 32;
 
    /* Term dimension */
    td->wx = 0;
