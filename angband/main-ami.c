@@ -1639,24 +1639,31 @@ static errr amiga_text( int x, int y, int n, int a, const wchar_t *s )
 
    if ( x >= 0 && y >= 0 && n > 0 && !iconified )
    {
-      /* Draw gfx one char at a time */
-      if (( a & 0xc0 ))
-      {
-         for ( i = 0; i < n; i++ ) put_gfx( td->rp, x + i, y, s[ i ] & 0x7f, a & 0x7f );
-      }
+//      /* Draw gfx one char at a time */
+//      if (( a & 0xc0 ))
+//      {
+//         for ( i = 0; i < n; i++ ) put_gfx( td->rp, x + i, y, s[ i ] & 0x7f, a & 0x7f );
+//      }
 
       /* Draw the string on screen */
-      else
-      {
+      //else
+      //{
 //         SetAPen( td->rp, PEN( a&0x1f ));
 //         SetBPen( td->rp, PEN( 0 ));
-         SetAPen( td->rp, a&0x1f );
-         SetBPen( td->rp,  0 );
+
+    	  /* the high bit of the attribute indicates a reversed fg/bg */
+    	 if( a > 127) {
+    		 SetAPen( td->rp,  a&0x1f );
+    		 SetBPen( td->rp,  a&0x1f );
+    	 } else {
+			 SetAPen( td->rp,  a&0x1f );
+			 SetBPen( td->rp,  0 );
+    	 }
          for(i=0; i<n; ++i)
         	 buffer[i]=*s++;
          Move( td->rp, x * td->fw, y * td->fh + td->fb );
          Text( td->rp, (char *) buffer, n );
-      }
+      //}
    }
 
    return ( 0 );
