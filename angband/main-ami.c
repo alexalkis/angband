@@ -1651,14 +1651,35 @@ static errr amiga_text( int x, int y, int n, int a, const wchar_t *s )
 //         SetAPen( td->rp, PEN( a&0x1f ));
 //         SetBPen( td->rp, PEN( 0 ));
 
+	   int bg=0;
+	   int fg=a&0x1f;
+	   /* Handle background */
+	   	switch (a / MAX_COLORS)
+	   	{
+	   		case BG_BLACK:
+	   			/* Default Background */
+	   			break;
+	   		case BG_SAME:
+	   			/* Background same as foreground*/
+	   			bg = fg;
+	   			break;
+	   		case BG_DARK:
+	   			/* Highlight Background */
+	   			bg = COLOUR_SHADE;
+	   			break;
+	   	}
+
+		 SetAPen( td->rp,  fg );
+		 SetBPen( td->rp,  bg );
+
     	  /* the high bit of the attribute indicates a reversed fg/bg */
-    	 if( a > 127) {
-    		 SetAPen( td->rp,  a&0x1f );
-    		 SetBPen( td->rp,  a&0x1f );
-    	 } else {
-			 SetAPen( td->rp,  a&0x1f );
-			 SetBPen( td->rp,  0 );
-    	 }
+//    	 if( a > 127) {
+//    		 SetAPen( td->rp,  a&0x1f );
+//    		 SetBPen( td->rp,  a&0x1f );
+//    	 } else {
+//			 SetAPen( td->rp,  a&0x1f );
+//			 SetBPen( td->rp,  0 );
+//    	 }
          for(i=0; i<n; ++i)
         	 buffer[i]=*s++;
          Move( td->rp, x * td->fw, y * td->fh + td->fb );
