@@ -124,6 +124,7 @@ typedef struct term_data
 
    BYTE use;                /* Use this window */
 
+
    BYTE cols;               /* Number of columns */
    BYTE rows;               /* Number of rows */
 
@@ -1712,6 +1713,7 @@ static errr amiga_xtra(int n, int v)
 {
 	term_data *td = (term_data*) (Term->data);
 
+	//printf("%d %d\n",n,v);
 	/* Analyze the request */
 	switch (n) {
 
