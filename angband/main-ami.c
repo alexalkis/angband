@@ -124,7 +124,6 @@ typedef struct term_data
 
    BYTE use;                /* Use this window */
 
-
    BYTE cols;               /* Number of columns */
    BYTE rows;               /* Number of rows */
 
