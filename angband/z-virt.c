@@ -18,6 +18,11 @@
 #include "z-virt.h"
 #include "z-util.h"
 
+//#define AMIGAMEM
+#ifdef AMIGAMEM
+#include <proto/exec.h>
+#endif
+
 unsigned int mem_flags = 0;
 
 #define SZ(uptr)	*((size_t *)((char *)(uptr) - sizeof(size_t)))
@@ -35,10 +40,16 @@ void *mem_alloc(size_t len)
 {
 	char *mem;
 
+//	static int c=0;
+//	printf("mem_alloc: %d %d\n", ++c, len);
 	/* Allow allocation of "zero bytes" */
 	if (len == 0) return (NULL);
 
+#ifdef AMIGAMEM
+	mem = AllocVec(len + sizeof(size_t), MEMF_ANY);
+#else
 	mem = malloc(len + sizeof(size_t));
+#endif
 	if (!mem)
 		quit("Out of Memory!");
 	mem += sizeof(size_t);
@@ -51,6 +62,8 @@ void *mem_alloc(size_t len)
 
 void *mem_zalloc(size_t len)
 {
+//	static int c=0;
+//	printf("mem_zalloc: %d\n", ++c);
 	void *mem = mem_alloc(len);
 	memset(mem, 0, len);
 	return mem;
@@ -58,25 +71,55 @@ void *mem_zalloc(size_t len)
 
 void mem_free(void *p)
 {
+//	static int c=0;
+//	printf("mem_free: %d\n", ++c);
+
 	if (!p) return;
 
 	if (mem_flags & MEM_POISON_FREE)
 		memset(p, 0xCD, SZ(p));
+#ifdef AMIGAMEM
+	FreeVec((char *)p - sizeof(size_t));
+#else
 	free((char *)p - sizeof(size_t));
+#endif
 }
+
+#ifdef AMIGAMEM
+void *arealloc(void *ptr, size_t size)
+{
+	if (!ptr) return ptr;
+	char *newmem = AllocVec(size, MEMF_ANY);
+	if (newmem) {
+		size_t oldsize = *((size_t *)ptr);
+		size-=sizeof(size_t);
+//		printf("oldsize: %d -> %d\n", oldsize, size);
+		int min = oldsize;
+		if (size<min) min = size;
+		memcpy((void *)((char *)newmem+sizeof(size_t)), (void *)((char *)ptr+sizeof(size_t)), min);
+		FreeVec(ptr);
+	}
+	return newmem;
+}
+#endif
 
 void *mem_realloc(void *p, size_t len)
 {
 	char *m = p;
 
+//	static int c=0;
+//	printf("mem_realloc: %d %d\n", ++c, len);
 	/* Fail gracefully */
 	if (len == 0) return (NULL);
-
+#ifdef AMIGAMEM
+	m = arealloc(m ? m - sizeof(size_t) : NULL, len + sizeof(size_t));
+#else
 	m = realloc(m ? m - sizeof(size_t) : NULL, len + sizeof(size_t));
-	m += sizeof(size_t);
-
+#endif
 	/* Handle OOM */
 	if (!m) quit("Out of Memory!");
+
+	m += sizeof(size_t);
 	SZ(m) = len;
 
 	return m;
