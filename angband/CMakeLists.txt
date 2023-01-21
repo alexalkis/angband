@@ -297,7 +297,7 @@ if(CMAKE_C_COMPILER MATCHES "m68k-amigaos-gcc$")
     set(SOURCES ${SOURCES} main-ami.c sound-ami.c sound-ami.h isqrt.asm)
     set(CMAKE_C_FLAGS_MINSIZEREL "-noixemul -DUSE_AMI -s ${CMAKE_C_FLAGS_MINSIZEREL}")
     #set(CMAKE_C_FLAGS_MINSIZEREL "-noixemul -DUSE_AMI -s -DNDEBUG -O3 -m68020")
-    message("${CMAKE_C_FLAGS_MINSIZEREL}")
+    message("CFLAGS: ${CMAKE_C_FLAGS_MINSIZEREL}")
     add_executable(angband ${SOURCES})
     #target_link_libraries(angband m)
     add_custom_command(TARGET angband POST_BUILD
