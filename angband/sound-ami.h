@@ -32,17 +32,17 @@
 #define MAXVOLUME    64
 #define MINVOLUME     0
 #define NORMALRATE    0
+struct SoundInfo
+{
+    BYTE *SoundBuffer;   /* WaveForm Buffers */
+    UWORD RecordRate;    /* Record Rate */
+    ULONG FileLength;    /* WaveForm Lengths */
+};
 
-extern CPTR PrepareSound( STRPTR file );
+extern CPTR PrepareSound(char *file );
 extern BOOL PlaySound( struct SoundInfo *info, UWORD volume, UBYTE channel, WORD delta_rate, UWORD repeat );
 extern void StopSound( UBYTE channel );
 extern void RemoveSound( struct SoundInfo *info );
 
-struct SoundInfo
-{
-  BYTE *SoundBuffer;   /* WaveForm Buffers */
-  UWORD RecordRate;    /* Record Rate */
-  ULONG FileLength;    /* WaveForm Lengths */
-};
 
 #endif /* SOUND_AMI_H_ */

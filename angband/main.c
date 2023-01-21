@@ -44,7 +44,9 @@
 #if defined(WIN32_CONSOLE_MODE) || !defined(WINDOWS) || defined(USE_SDL)
 
 #include "main.h"
-
+#ifdef USE_AMI
+void init_flag_tables(void);
+#endif
 /**
  * List of the available modules in the order they are tried.
  */
@@ -172,9 +174,11 @@ static void init_stuff(void)
 
 	/* Initialize */
 	init_file_paths(configpath, libpath, datapath);
-#ifdef USE_AMI
+//#ifdef USE_AMI
+#ifdef EXPENSIVE_OFFSETS
 	init_flag_tables();
 #endif
+//#endif
 }
 
 

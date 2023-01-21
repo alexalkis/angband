@@ -386,6 +386,7 @@ void pre_turn_refresh(void)
  */
 static void start_game(bool new_game)
 {
+	printf("In start_game...\n");fflush(stdout);
 	/* Player will be resuscitated if living in the savefile */
 	player->is_dead = TRUE;
 
@@ -407,10 +408,16 @@ static void start_game(bool new_game)
 	/* Save not required yet. */
 	player->upkeep->autosave = FALSE;
 
+
 	/* Enter the level, generating a new one if needed */
-	if (!character_dungeon)
-		cave_generate(&cave, player);
+	if (!character_dungeon) {
+        printf("About to call cave_generate\n");fflush(stdout);
+        cave_generate(&cave, player);
+    }
+    printf("About to call on_new_level\n");fflush(stdout);
 	on_new_level();
+
+	printf("Returning from start_game...\n");fflush(stdout);
 }
 
 /**

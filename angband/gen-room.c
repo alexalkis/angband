@@ -42,6 +42,12 @@
 #include "z-queue.h"
 #include "z-type.h"
 
+#ifdef USE_AMI
+// math lib is needed only for sqrt, so we provide an integer sqrt in asm
+//  and we don't need to link with math (-lm) for Amiga
+int isqrt(int n);
+#endif
+
 /**
  * Chooses a room template of a particular kind at random.
  * \param typ template room type - currently unused
@@ -247,8 +253,12 @@ static void fill_circle(struct chunk *c, int y0, int x0, int radius, int border,
 	int i, last = 0;
 	int r2 = radius * radius;
 	for(i = 0; i <= radius; i++) {
+#ifdef USE_AMI
+        int k = isqrt(r2 - (i * i));
+#else
 		double j = sqrt(r2 - (i * i));
 		int k = (int)(j + 0.5);
+#endif
 
 		int b = border;
 		if (border && last > k) b++;

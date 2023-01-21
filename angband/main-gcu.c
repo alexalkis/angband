@@ -549,8 +549,8 @@ static errr Term_xtra_gcu_event(int v) {
 	#endif
 
 	/* uncomment to debug keycode issues */
-	#if 0
-	printw("key %d", i);
+    #if 0
+	printw("key %d (%s)", i, keyname(i));
 	wrefresh(stdscr);
 	#endif
 
@@ -612,17 +612,41 @@ static errr Term_xtra_gcu_event(int v) {
 		case 13:        i = KC_ENTER; break;
 		case 27:        i = ESCAPE; break;
 
-		/* keypad keys */
-		case 0xFC: i = '0'; break;
-		case 0xFD: i = '.'; break;
-		case 0xC0: i = '\b'; break;
-		case 0xDF: i = '1'; break;
-		case 0xF5: i = '3'; break;
-		case 0xE9: i = '5'; break;
-		case 0xC1: i = '7'; break;
-		case 0xF4: i = '9'; break;
 
-		default: {
+//		/* keypad keys */
+//		case 0xFC: i = '0'; break;
+//		case 0xFD: i = '.'; break;
+//		case 0xC0: i = '\b'; break;
+//		case 0xDF: i = '1'; break;
+//		case 0xF5: i = '3'; break;
+//		case 0xE9: i = '5'; break;
+//		case 0xC1: i = '7'; break;
+//		case 0xF4: i = '9'; break;
+
+            /* keypad keys */
+        case 0xFC: i = '0';mods |= KC_MOD_KEYPAD; break;
+        case 0xFD: i = '.';mods |= KC_MOD_KEYPAD; break;
+        case 0xC0: i = '\b';mods |= KC_MOD_KEYPAD; break;
+        case 0xDF: i = '1';mods |= KC_MOD_KEYPAD; break;
+        case 0xF5: i = '3';mods |= KC_MOD_KEYPAD; break;
+        case 0xE9: i = '5';mods |= KC_MOD_KEYPAD; break;
+        case 0xC1: i = '7';mods |= KC_MOD_KEYPAD; break;
+        case 0xF4: i = '9';mods |= KC_MOD_KEYPAD; break;
+
+        case KEY_F(1):i=KC_F1;break;
+        case KEY_F(2):i=KC_F2;break;
+        case KEY_F(3):i=KC_F3;break;
+        case KEY_F(4):i=KC_F4;break;
+        case KEY_F(5):i=KC_F5;break;
+        case KEY_F(6):i=KC_F6;break;
+        case KEY_F(7):i=KC_F7;break;
+        case KEY_F(8):i=KC_F8;break;
+        case KEY_F(9):i=KC_F9;break;
+        case KEY_F(10):i=KC_F10;break;
+        case KEY_F(11):i=KC_F11;break;
+        case KEY_F(12):i=KC_F12;break;
+
+        default: {
 			if (i < KEY_MIN) break;
 
 			/* Mega-Hack -- Fold, spindle, and mutilate

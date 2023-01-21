@@ -18,7 +18,7 @@
 
 #include "z-bitflag.h"
 
-#define EXPENSIVE_OFFSETS
+
 
 /**
  * Precalculate offsets and bitflags (I can't really tell if it helps or not,

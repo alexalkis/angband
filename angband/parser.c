@@ -218,7 +218,8 @@ enum parser_error parser_parse(struct parser *p, const char *line) {
 
 	assert(p);
 	assert(line);
-
+    if (!strcmp(line, "graphics:~:y"))
+        cline = NULL;
 	parser_freeold(p);
 
 	p->lineno++;
