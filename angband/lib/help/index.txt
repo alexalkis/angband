@@ -1,0 +1,35 @@
+~~~~~~~~~~~~~~~~~~
+The Angband Manual
+~~~~~~~~~~~~~~~~~~
+
+.. image:: ../lib/icons/mr-att.png
+   :alt: 
+   :align: center
+
+.. sectnum::
+
+.. contents:: Table of Contents
+   :depth: 1
+
+.. include:: general.txt
+
+.. include:: birth.txt
+
+.. include:: dungeon.txt
+
+.. include:: attack.txt
+
+.. include:: playing.txt
+
+.. include:: command.txt
+
+.. include:: option.txt
+
+.. include:: customize.txt
+
+.. include:: debug.txt
+
+.. include:: version.txt
+
+.. include:: ../../thanks.txt
+

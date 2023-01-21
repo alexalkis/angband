@@ -1,0 +1,26 @@
+[CODE][TT][BC=black][COLOR=white]
+                                                                                
+[COLOR="#00FFFF"]Human[/COLOR]                                          [COLOR="#606060"]#.......[/COLOR][COLOR="#C08040"]'[/COLOR][COLOR="#606060"].......................[/COLOR] 
+[COLOR="#00FFFF"]Rookie[/COLOR]                                         [COLOR="#606060"]##.#.#.######################[/COLOR][COLOR="#FF8000"]*[/COLOR][COLOR="#606060"]%%[/COLOR] 
+[COLOR="#00FFFF"]Warrior[/COLOR]                                        [COLOR="#606060"]#.......#[/COLOR]                        
+LEVEL [COLOR="#00FF00"]     2[/COLOR]                                   [COLOR="#606060"]#########[/COLOR]                        
+NXT [COLOR="#00FF00"]      10[/COLOR]                                                                    
+AU [COLOR="#00FF00"]      198[/COLOR]                                                                    
+[COLOR="#C0C0C0"]|[/COLOR]    [COLOR="#804000"]~[/COLOR][COLOR="#C08040"]([/COLOR]                                                                         
+STR:  [COLOR="#00FF00"] 18/20[/COLOR]                  [COLOR="#606060"]#[/COLOR]#######[COLOR="#606060"].[/COLOR]###.#######                              
+INT:  [COLOR="#00FF00"]     8[/COLOR]                  [COLOR="#606060"]#[/COLOR]..................#                              
+WIS:  [COLOR="#00FF00"]     8[/COLOR]                  #..................#                              
+DEX:  [COLOR="#00FF00"] 18/20[/COLOR]                  #..................#                              
+CON:  [COLOR="#00FF00"]    12[/COLOR]                  #..................[COLOR="#606060"].[/COLOR]                              
+                              #..................#                              
+Cur AC [COLOR="#00FF00"]   10[/COLOR]                  #..................#                              
+HP [COLOR="#00FF00"]  30[/COLOR]/[COLOR="#00FF00"]  30[/COLOR]                  #.................@#                              
+                              ########[COLOR="#606060"].[/COLOR]#########.#                              
+                                     [COLOR="#606060"]#.#########.#[/COLOR]                              
+                                     [COLOR="#606060"]#...........#[/COLOR]                              
+                                     [COLOR="#606060"]#############[/COLOR]                              
+                                                                                
+                                                                                
+50' (L1)                                                                        
+             LF:[COLOR="#0040FF"]2[/COLOR]-[COLOR="#00FFFF"]1[/COLOR]                                                             
+[/COLOR][/BC][/TT][/CODE]
