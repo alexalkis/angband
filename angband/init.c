@@ -3531,6 +3531,8 @@ static enum parser_error parse_class_dice(struct parser *p) {
 
 	string = parser_getstr(p, "dice");
 
+    assert(string!=NULL);
+
 	if (dice_parse_string(dice, string)) {
 		effect->dice = dice;
 	}

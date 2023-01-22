@@ -599,7 +599,9 @@ int main(int argc, char *argv[])
     printf("Init time: %d\n", initTime-startTime);
     printf("Total time: %d\n", endTime-startTime);
 
+    #ifndef USE_AMI
     fgets((char *)&endTime,4, stdin);
+    #endif
     #else
 	/* Quit */
 	quit(NULL);
@@ -621,3 +623,6 @@ uint32_t GetSysTime(void) {
 }
 #endif
 #endif
+
+
+// 23/01/2023 - Amiga -Os, 53385 ticks for init
