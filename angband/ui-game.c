@@ -417,7 +417,7 @@ static void start_game(bool new_game)
     printf("About to call on_new_level\n");fflush(stdout);
 	on_new_level();
 
-	printf("Returning from start_game...\n");fflush(stdout);
+	//printf("Returning from start_game...\n");fflush(stdout);
 }
 
 /**

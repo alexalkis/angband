@@ -260,6 +260,7 @@ static enum parser_error parse_buy_flag(struct parser *p) {
 	buy = mem_zalloc(sizeof(*buy));
 	t = string_make(parser_getsym(p, "flag"));
 	flag = lookup_flag(obj_flags, t);
+    string_free(t); // added by ALKIS
 	if (flag == FLAG_END)
 		return PARSE_ERROR_INVALID_FLAG;
 	buy->flag = flag;

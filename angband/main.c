@@ -563,7 +563,11 @@ int main(int argc, char *argv[])
 			if (0 == sound_modules[i].init(argc, argv))
 				break;
 		}
-
+#define TIMEINIT
+#ifdef TIMEINIT
+    uint32_t GetSysTime(void);
+    uint32_t startTime = GetSysTime();
+#endif
 	/* Catch nasty signals */
 	signals_init();
 
@@ -575,7 +579,11 @@ int main(int argc, char *argv[])
 	init_angband();
 	textui_init();
 
-	/* Wait for response */
+#ifdef TIMEINIT
+    uint32_t initTime = GetSysTime();
+#endif
+
+    /* Wait for response */
 	pause_line(Term);
 
 	/* Play the game */
@@ -585,11 +593,31 @@ int main(int argc, char *argv[])
 	textui_cleanup();
 	cleanup_angband();
 
+    #ifdef TIMEINIT
+    uint32_t endTime = GetSysTime();
+    if (quit_aux) (*quit_aux)(NULL);    // close windows/terminals
+    printf("Init time: %d\n", initTime-startTime);
+    printf("Total time: %d\n", endTime-startTime);
+
+    fgets((char *)&endTime,4, stdin);
+    #else
 	/* Quit */
 	quit(NULL);
-
+    #endif
 	/* Exit */
 	return (0);
 }
 
+#endif
+
+#ifndef USE_AMI
+#ifdef UNIX
+uint32_t GetSysTime(void) {
+    //return (uint32_t )(((double)clock())*100.0/CLOCKS_PER_SEC);
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    //return ts.tv_sec * 1000 000 000L + ts.tv_nsec;
+    return ts.tv_sec * 100L + ts.tv_nsec/10000000;
+}
+#endif
 #endif

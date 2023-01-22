@@ -3473,7 +3473,7 @@ int depth_of_bitmap(struct BitMap *bm) {
 ///}
 
 /// Returns millionths of seconds passed. (Actual seconds wrap at 256)
-ULONG GetSysTime(void) {
+ULONG oldGetSysTime(void) {
   struct timerequest tr;
 
   memset(&tr, 0, sizeof(tr));
@@ -3484,4 +3484,11 @@ ULONG GetSysTime(void) {
   CloseDevice((struct IORequest *)&tr);
 
   return (tr.tr_time.tv_secs & 0xff) * 1000000 + tr.tr_time.tv_micro;
+}
+
+uint32_t GetSysTime(void) {
+    struct DateStamp ds;
+
+    DateStamp(&ds);
+    return ds.ds_Minute*60*TICKS_PER_SECOND+ds.ds_Tick;
 }
